@@ -5,22 +5,23 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
-import android.content.Context;
-import android.os.Build;
+import android.net.Uri;
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
-import android.widget.ArrayAdapter;
-import android.widget.TextView;
+
+import me.redwhite.redwhite.fragments.BrowseCommunityFragment;
+import me.redwhite.redwhite.fragments.BrowseQuestionsFragment;
+import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
+import me.redwhite.redwhite.fragments.NewsfeedFragment;
 
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks {
+        implements NavigationDrawerFragment.NavigationDrawerCallbacks, NewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -51,15 +52,55 @@ public class MainActivity extends Activity
     public void onNavigationDrawerItemSelected(int position) {
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
+
+        Fragment nextFragment;
+
+        switch (position)
+        {
+            case 0:
+                nextFragment = NewsfeedFragment.newInstance(null, null);
+                break;
+            case 1:
+                nextFragment = BrowseQuestionsFragment.newInstance(null, null);
+                break;
+            case 2:
+                nextFragment = BrowseCommunityFragment.newInstance(null, null);
+                break;
+            case 3:
+                //TODO: Update
+                nextFragment = NewsfeedFragment.newInstance(null, null);
+                break;
+            case 4:
+                nextFragment = NewsfeedFragment.newInstance(null, null);
+                break;
+            default:
+                return;
+        }
+
         fragmentManager.beginTransaction()
-                .replace(R.id.container, PlaceholderFragment.newInstance(position + 1))
+                // TODO: Update this line to navigate to defined fragments
+                .replace(R.id.container, nextFragment)
                 .commit();
+    }
+
+    // FRAGMENT INTERACTIONS LISTENER
+
+    // For Newsfeed
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
+    }
+
+    // For others
+    @Override
+    public void onFragmentInteraction(String id) {
+
     }
 
     public void onSectionAttached(int number) {
         switch (number) {
             case 1:
-                mTitle = getString(R.string.title_section1);
+                mTitle = "Newsfeed";
                 break;
             case 2:
                 mTitle = getString(R.string.title_section2);
@@ -76,7 +117,6 @@ public class MainActivity extends Activity
         actionBar.setDisplayShowTitleEnabled(true);
         actionBar.setTitle(mTitle);
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -106,8 +146,11 @@ public class MainActivity extends Activity
         return super.onOptionsItemSelected(item);
     }
 
+
+
     /**
      * A placeholder fragment containing a simple view.
+     * THIS IS DEMO CODE. CAN IGNORE.
      */
     public static class PlaceholderFragment extends Fragment {
         /**
