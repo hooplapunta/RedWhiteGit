@@ -1,4 +1,117 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:id="@+id/container"
     android:layout_width="match_parent" android:layout_height="match_parent"
-    tools:context="me.redwhite.redwhite.SingleProfileActivity" tools:ignore="MergeRootFrame" />
+    tools:context="me.redwhite.redwhite.SingleProfileActivity"
+    android:orientation="vertical"
+    >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="120dp"
+        android:orientation="horizontal"
+        android:weightSum="1"
+        android:layout_gravity="center_horizontal|top">
+
+        <ImageView
+            android:id="@+id/userDp"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="35dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_weight="0.10" />
+
+
+        <TextView
+
+            android:text="30"
+            android:textSize="20dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="35dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
+
+
+
+        <TextView
+            android:text="Posted"
+            android:textSize="14dp"
+            android:layout_marginTop="55dp"
+            android:layout_marginLeft="-35dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp" />
+
+        <TextView
+            android:text="21"
+            android:textSize="20dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="50dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
+
+        <TextView
+            android:text="Answered"
+            android:textSize="14dp"
+            android:layout_marginTop="55dp"
+            android:layout_marginLeft="-50dp"
+            android:layout_width="70dp"
+            android:layout_height="30dp" />
+
+        <TextView
+            android:text="51"
+            android:textSize="20dp"
+            android:layout_marginTop="25dp"
+            android:layout_marginLeft="30dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp" />
+
+        <TextView
+            android:text="Points"
+            android:textSize="14dp"
+            android:layout_marginTop="55dp"
+            android:layout_marginLeft="-35dp"
+            android:layout_width="50dp"
+            android:layout_height="30dp" />
+
+
+    </LinearLayout>
+<LinearLayout
+    android:layout_width="fill_parent"
+    android:layout_height="60dp"
+    android:orientation="horizontal"
+    android:weightSum="1"
+    android:layout_gravity="center_horizontal|top">
+
+    <TextView
+        android:text="Jun Hong"
+        android:layout_marginLeft="35dp"
+        android:layout_width="80dp"
+        android:layout_height="20dp" />
+    <TextView
+        android:text="A.K.A akatsuki95_dragonSlayer_Shadow_zxc"
+        android:layout_marginTop="30dp"
+        android:layout_marginLeft="-80dp"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp" />
+
+    </LinearLayout>
+
+    <ListView
+        android:layout_marginLeft="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/listViewQuestions"
+        android:divider="@null"
+        android:dividerHeight="16dp"
+        android:listSelector="@android:color/transparent"
+        android:cacheColorHint="@android:color/transparent"
+        android:headerDividersEnabled="true"
+        android:footerDividersEnabled="true"
+
+        />
+
+
+
+</LinearLayout>
+
+
+
