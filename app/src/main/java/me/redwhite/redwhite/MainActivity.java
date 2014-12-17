@@ -18,10 +18,11 @@ import me.redwhite.redwhite.fragments.BrowseCommunityFragment;
 import me.redwhite.redwhite.fragments.BrowseQuestionsFragment;
 import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
 import me.redwhite.redwhite.fragments.NewsfeedFragment;
+import me.redwhite.redwhite.fragments.OldNewsfeedFragment;
 
 
 public class MainActivity extends Activity
-        implements NavigationDrawerFragment.NavigationDrawerCallbacks, NewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener {
+        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -68,10 +69,10 @@ public class MainActivity extends Activity
                 break;
             case 3:
                 //TODO: Update
-                nextFragment = NewsfeedFragment.newInstance(null, null);
+                nextFragment = OldNewsfeedFragment.newInstance(null, null);
                 break;
             case 4:
-                nextFragment = NewsfeedFragment.newInstance(null, null);
+                nextFragment = OldNewsfeedFragment.newInstance(null, null);
                 break;
             default:
                 return;

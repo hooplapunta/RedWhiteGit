@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:paddingLeft="16dp"
     android:paddingRight="16dp"
-    android:paddingBottom="280dp"
+    android:paddingBottom="145dp"
     android:descendantFocusability="afterDescendants"
     android:tag="sticky"
     >
