@@ -1,12 +1,23 @@
 package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.os.Handler;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.AbsListView;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -18,6 +29,7 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -48,7 +60,9 @@ public class BrowseQuestionsFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
     private MapView mMapView;
-    private GoogleMap googleMap;
+    private GoogleMap gMap;
+
+    private boolean listViewActive = true;
 
     /**
      * Use this factory method to create a new instance of
@@ -79,6 +93,9 @@ public class BrowseQuestionsFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        // Allow access to the ActionBar
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -101,17 +118,52 @@ public class BrowseQuestionsFragment extends Fragment {
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(GoogleMap googleMap) {
+                gMap = googleMap;
                 LatLng singpaore = new LatLng(1.3, 103.8);
 
                 googleMap.setMyLocationEnabled(true);
-                googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(singpaore, 13));
+
+                gMap.setOnMyLocationChangeListener(new GoogleMap.OnMyLocationChangeListener() {
+                    @Override
+                    public void onMyLocationChange(Location location) {
+                        gMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
+                    }
+                });
+
+                googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+
+                        FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
+
+                        View tempFrom = frameLayout.getChildAt(0);
+                        frameLayout.bringChildToFront(tempFrom);
+                    }
+                });
 
                 googleMap.addMarker(new MarkerOptions()
-                        .title("Singapore")
-                        .snippet("Home of RedWhite")
-                        .position(singpaore));
+                        .title("What do you think is in this new building?")
+                        .snippet("asked by Nanyang Polytechnic")
+                        .position(new LatLng(1.379, 103.847)));
+
+                googleMap.addMarker(new MarkerOptions()
+                        .title("Rate the appearance of the new building and interior!")
+                        .snippet("asked by Nanyang Polytechnic")
+                        .position(new LatLng(1.380, 103.849)));
+
+                googleMap.addMarker(new MarkerOptions()
+                        .title("How do you feel about the upcoming exams?")
+                        .snippet("asked by NYP SIT")
+                        .position(new LatLng(1.379, 103.850)));
+
+                googleMap.addMarker(new MarkerOptions()
+                        .title("Did you find this MRT station to be crowded?")
+                        .snippet("asked by SMRT")
+                        .position(new LatLng(1.381, 103.844)));
             }
         });
+
+
 
         List<Question> listQuestions = new ArrayList<Question>();
         listQuestions.add(new Question());
@@ -127,29 +179,121 @@ public class BrowseQuestionsFragment extends Fragment {
         listViewQuestions.addFooterView(new View(v.getContext()));
         listViewQuestions.setAdapter(questionsListAdapter);
 
-//        // latitude and longitude
-//        double latitude = 17.385044;
-//        double longitude = 78.486671;
-//
-//        // create marker
-//        MarkerOptions marker = new MarkerOptions().position(
-//                new LatLng(latitude, longitude)).title("Hello Maps");
-//
-//        // Changing marker icon
-//        marker.icon(BitmapDescriptorFactory
-//                .defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
-//
-//        // adding marker
-//        googleMap.addMarker(marker);
-//        CameraPosition cameraPosition = new CameraPosition.Builder()
-//                .target(new LatLng(17.385044, 78.486671)).zoom(12).build();
-//        googleMap.animateCamera(CameraUpdateFactory
-//                .newCameraPosition(cameraPosition));
-//
-//        // Perform any camera updates here
-
-
         return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        ListView listViewQuestions = (ListView) getActivity().findViewById(R.id.listViewQuestions);
+        listViewQuestions.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+                // TODO Auto-generated method stub
+                if (scrollState == SCROLL_STATE_FLING) {
+                    View itemView = view.getChildAt(0);
+                    int top = Math.abs(itemView.getTop());
+                    int bottom = Math.abs(itemView.getBottom());
+                    int scrollBy = top >= bottom ? bottom : -top;
+                    if (scrollBy == 0) {
+                        return;
+                    }
+                    smoothScrollDeferred(scrollBy, (ListView)view);
+                }
+            }
+
+            private void smoothScrollDeferred(final int scrollByF,
+                                              final ListView viewF) {
+                final Handler h = new Handler();
+                h.post(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        // TODO Auto-generated method stub
+                        viewF.smoothScrollBy(scrollByF, 350);
+                    }
+                });
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem,
+                                 int visibleItemCount, int totalItemCount) {
+                // TODO Auto-generated method stub
+
+            }
+        });
+
+
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_browse_questions, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menuShowNearby) {
+
+            final FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
+            ListView listViewQuestions = (ListView) getActivity().findViewById(R.id.listViewQuestions);
+
+            if(listViewActive){
+                Animation animation = new AlphaAnimation(1.0f, 0.0f);
+                animation.setFillAfter(true);
+                animation.setDuration(350);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        View tempFrom = frameLayout.getChildAt(1);
+                        frameLayout.bringChildToFront(tempFrom);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                listViewQuestions.startAnimation(animation);
+                item.setTitle("Show All");
+            } else {
+                Animation animation = new AlphaAnimation(0.0f, 1.0f);
+                animation.setFillAfter(true);
+                animation.setDuration(350);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                        View tempFrom = frameLayout.getChildAt(1);
+                        frameLayout.bringChildToFront(tempFrom);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                listViewQuestions.startAnimation(animation);
+                item.setTitle("Show Nearby");
+            }
+
+            listViewActive = !listViewActive;
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     // TODO: Rename method, update argument and hook method into UI event

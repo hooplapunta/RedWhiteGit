@@ -1,23 +1,75 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:id="@+id/frameLayoutBrowseQuestions"
     tools:context="me.redwhite.redwhite.fragments.BrowseQuestionsFragment">
+
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/frameLayoutSingleQuestion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="145dp"
+        android:tag="sticky"
+        >
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingLeft="16dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="16dp"
+            android:paddingRight="16dp"
+            android:elevation="6dp"
+            android:descendantFocusability="afterDescendants"
+            android:background="@drawable/layer_card_background"
+            android:id="@+id/linearLayoutCard"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical|left"
+                android:layout_gravity="center_vertical|left">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_launcher"
+                    />
+
+                <TextView
+                    android:id="@+id/tvUsername"
+                    android:layout_marginLeft="16dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TheUsername asked:"
+                    />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvQuestionText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="This is the question text."
+                android:textSize="24sp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                />
+
+
+        </LinearLayout>
+    </FrameLayout>
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:elevation="0dp"/>
-
-    <!--<com.emilsjolander.components.StickyScrollViewItems.StickyScrollView-->
-        <!--android:layout_height="match_parent"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:id="@+id/scrollViewQuestions">-->
-
-        <!---->
-
-        <!--&lt;!&ndash; scroll view child goes here &ndash;&gt;-->
-    <!--</com.emilsjolander.components.StickyScrollViewItems.StickyScrollView>-->
 
     <ListView
         android:layout_width="match_parent"
@@ -31,6 +83,8 @@
         android:footerDividersEnabled="true"
 
         />
+
+
 
 
 </FrameLayout>

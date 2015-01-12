@@ -2,26 +2,44 @@ package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.app.ListFragment;
+import android.app.Fragment;
+import android.os.CountDownTimer;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import me.redwhite.redwhite.R;
-import me.redwhite.redwhite.dummy.DummyContent;
+import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.utils.QuestionsListAdapter;
+
 
 /**
- * A fragment representing a list of Items.
- * <p/>
- * <p/>
- * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
- * interface.
+ * A simple {@link Fragment} subclass.
+ * Activities that contain this fragment must implement the
+ * {@link NewsfeedFragment.OnFragmentInteractionListener} interface
+ * to handle interaction events.
+ * Use the {@link NewsfeedFragment#newInstance} factory method to
+ * create an instance of this fragment.
  */
-public class NewsfeedFragment extends ListFragment {
-
+public class NewsfeedFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -31,10 +49,16 @@ public class NewsfeedFragment extends ListFragment {
     private String mParam1;
     private String mParam2;
 
+    private OnFragmentInteractionListener mListener;
+
+    private MapView mMapView;
+    private GoogleMap googleMap;
 
     ListView list;
     String userId;
     String questionDetail;
+    ArrayList<Marker> listMarkers;
+    CountDownTimer timer;
 
     final String[] username ={"junhong14",
             "TheUsername",
@@ -49,9 +73,15 @@ public class NewsfeedFragment extends ListFragment {
             R.drawable.user2
     };
 
-    private OnFragmentInteractionListener mListener;
-
-    // TODO: Rename and change types of parameters
+    /**
+     * Use this factory method to create a new instance of
+     * this fragment using the provided parameters.
+     *
+     * @param param1 Parameter 1.
+     * @param param2 Parameter 2.
+     * @return A new instance of fragment NewsfeedFragment.
+     */
+    // TODO: Rename and change types and number of parameters
     public static NewsfeedFragment newInstance(String param1, String param2) {
         NewsfeedFragment fragment = new NewsfeedFragment();
         Bundle args = new Bundle();
@@ -61,38 +91,89 @@ public class NewsfeedFragment extends ListFragment {
         return fragment;
     }
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public NewsfeedFragment() {
+        // Required empty public constructor
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
+    }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        // Inflate the layout for this fragment
+        View v =  inflater.inflate(R.layout.fragment_newsfeed, container, false);
+
+        mMapView = (MapView) v.findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+
+        mMapView.onResume();// needed to get the map to display immediately
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+
+                googleMap.setMyLocationEnabled(true);
+                googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+                        String userId = "junhong14";
+                        String questionDetail = marker.getTitle();
+                        Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                        myIntent.putExtra("username", userId);
+                        myIntent.putExtra("question", questionDetail);
+                        startActivity(myIntent);
+                    }
+                });
+
+                // latitude and longitude
+                double latitude = 1.3667;
+                double longitude = 103.8;
+
+                // create marker
+                MarkerOptions marker = new MarkerOptions().position(
+                        new LatLng(latitude, longitude)).title("Singapore").snippet("Home of RedWhite");
+
+                // Changing marker icon
+//                marker.icon(BitmapDescriptorFactory
+//                        .defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
+
+                // adding marker
+                googleMap.addMarker(marker);
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(latitude, longitude)).zoom(10).build();
+                googleMap.animateCamera(CameraUpdateFactory
+                        .newCameraPosition(cameraPosition));
+
+                // Perform any camera updates here
+            }
+        });
 
 
         CustomListView adapter = new CustomListView(getActivity(),questions,imageId,username);
+        list = (ListView) v.findViewById(R.id.listViewActivity);
+        list.setAdapter(adapter);
 
+        listMarkers = new ArrayList<>();
 
-        setListAdapter(adapter);
-        // TODO: Change Adapter to display your content
-        //setListAdapter(new ArrayAdapter<DummyContent.DummyItem>(getActivity(),
-        //        android.R.layout.simple_list_item_1, android.R.id.text1, DummyContent.ITEMS));
+        return v;
     }
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        list = getListView();
-
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -106,6 +187,66 @@ public class NewsfeedFragment extends ListFragment {
 
             }
         });
+
+
+        // Randomly generate points in the map
+        timer = new CountDownTimer(1500, 20) {
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                try{
+                    addMarkers();
+                }catch(Exception e){
+
+                }
+            }
+        }.start();
+    }
+
+    public void addMarkers()
+    {
+        double lat1 = 1.24273092;
+        double lng1 = 103.61000061;
+        double lat2 = 1.46376897;
+        double lng2 = 104.07691956;
+
+        double diffLat = lat2 - lat1;
+        double diffLng = lng2 - lng1;
+
+        double rGen = Math.random();
+        double rGen2 = Math.random();
+        double rLat = rGen * diffLat;
+        double rLng = rGen2 * diffLng;
+        double nLat = (lat1 + rLat);
+        double nLng = (lng1 + rLng);
+        LatLng point = new LatLng(nLat, nLng);
+
+        Marker newMarker = mMapView.getMap().addMarker(new MarkerOptions()
+                        .position(point)
+                        .title("What should Bishan CC do next?")
+                        .snippet("junhong14 answered")
+        );
+
+        listMarkers.add(newMarker);
+
+        if (listMarkers.size() > 4)
+        {
+            listMarkers.get(0).remove();
+        }
+
+        timer.start();
+    }
+
+    // TODO: Rename method, update argument and hook method into UI event
+    public void onButtonPressed(Uri uri) {
+        if (mListener != null) {
+            mListener.onFragmentInteraction(uri);
+        }
     }
 
     @Override
@@ -125,16 +266,28 @@ public class NewsfeedFragment extends ListFragment {
         mListener = null;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        mMapView.onResume();
+    }
 
     @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        super.onListItemClick(l, v, position, id);
+    public void onPause() {
+        super.onPause();
+        mMapView.onPause();
+    }
 
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
-        }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mMapView.onLowMemory();
     }
 
     /**
@@ -149,7 +302,7 @@ public class NewsfeedFragment extends ListFragment {
      */
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
-        public void onFragmentInteraction(String id);
+        public void onFragmentInteraction(Uri uri);
     }
 
 }
