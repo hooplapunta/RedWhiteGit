@@ -1,5 +1,8 @@
 package me.redwhite.redwhite;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -10,20 +13,79 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.ListView;
+
+import me.redwhite.redwhite.fragments.CustomListView;
+import me.redwhite.redwhite.fragments.QuestionDetailActivity;
 
 
-public class SingleCommunityActivity extends ActionBarActivity {
+public class SingleCommunityActivity extends Activity {
+
+    final String[] username ={"junhong14",
+            "TheUsername",
+            "Marly"};
+    final String[] questions ={"Do you take public transport or drive to work",
+            "How often do you have dinner at home",
+            "How often do you spend your weekends with your family"};
+    final Integer[] imageId ={
+            R.drawable.user1,
+            R.drawable.user2,
+            R.drawable.user2
+    };
+    ListView list;
+    String userId;
+    String questionDetail;
+    Button joinBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+
         setContentView(R.layout.activity_single_community);
         if (savedInstanceState == null) {
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
-                    .commit();
+//            getSupportFragmentManager().beginTransaction()
+//                    .add(R.id.container, new PlaceholderFragment())
+//                    .commit();
         }
-    }
+
+        // Set up listview for the community
+        CustomListView adapter = new CustomListView(this,questions,imageId,username);
+        list = (ListView) findViewById(R.id.listViewQuestions);
+        list.setAdapter(adapter);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                userId = username[position];
+                questionDetail = questions[position];
+                Intent myIntent = new Intent(getApplicationContext() ,QuestionDetailActivity.class);
+                myIntent.putExtra("username", userId);
+                myIntent.putExtra("question", questionDetail);
+                startActivity(myIntent);
+            }
+        });
+
+
+        joinBtn = (Button)findViewById(R.id.btn_join);
+        joinBtn.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (joinBtn.getText().equals("Join")) {
+                            joinBtn.setText("Leave");
+                            joinBtn.setBackgroundColor(Color.GRAY);
+
+                        } else if (joinBtn.getText().equals("Leave")) {
+                            joinBtn.setText("Join");
+                            joinBtn.setBackgroundColor(Color.RED);
+                        }
+
+                    }      }
+        );
+                }
 
 
     @Override

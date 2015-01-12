@@ -1,12 +1,15 @@
 package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ListView;
 
 import me.redwhite.redwhite.R;
 
@@ -20,6 +23,23 @@ import me.redwhite.redwhite.R;
  * create an instance of this fragment.
  */
 public class BrowseCommunityGroupFragment extends Fragment {
+
+
+    final String[] username ={"#NYP",
+            "#SP",
+            "#TP"};
+    final String[] questions ={"Nanyang Polytechnic",
+            "Singapore Polytechnic",
+            "Temasek Polytechnic"};
+    final Integer[] imageId ={
+            R.drawable.user1,
+            R.drawable.user2,
+            R.drawable.user2
+    };
+    ListView list;
+    String userId;
+    String questionDetail;
+
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -74,6 +94,25 @@ public class BrowseCommunityGroupFragment extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
+    }
+
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        CustomListView adapter = new CustomListView(getActivity(),questions,imageId,username);
+        list = (ListView) getActivity().findViewById(R.id.listViewQuestions);
+        list.setAdapter(adapter);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                userId = username[position];
+                questionDetail = questions[position];
+                Intent myIntent = new Intent(getActivity().getApplicationContext() ,QuestionDetailActivity.class);
+                myIntent.putExtra("username", userId);
+                myIntent.putExtra("question", questionDetail);
+                startActivity(myIntent);
+            }
+        });
+
+        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
