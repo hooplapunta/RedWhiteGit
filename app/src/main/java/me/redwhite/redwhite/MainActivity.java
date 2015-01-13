@@ -13,12 +13,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
+import android.widget.Toast;
+
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 
 import me.redwhite.redwhite.fragments.BrowseCommunityFragment;
 import me.redwhite.redwhite.fragments.BrowseQuestionsFragment;
 import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
 import me.redwhite.redwhite.fragments.NewsfeedFragment;
 import me.redwhite.redwhite.fragments.OldNewsfeedFragment;
+import me.redwhite.redwhite.models.User;
 
 
 public class MainActivity extends Activity
@@ -47,6 +54,24 @@ public class MainActivity extends Activity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        //TEMP, TEST THE USER DATABASE
+        Firebase.setAndroidContext(this);
+        User.findNodeByKey("BAA", new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User node;
+                node = dataSnapshot.getValue(User.class);
+                node.key = dataSnapshot.getKey();
+                Toast.makeText(getApplicationContext(), node.toString(), Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
     }
 
     @Override

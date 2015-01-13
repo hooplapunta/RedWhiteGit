@@ -2,6 +2,7 @@ package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,9 +17,11 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.AbsListView;
+import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -31,6 +34,8 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -135,6 +140,95 @@ public class BrowseQuestionsFragment extends Fragment {
                     public void onInfoWindowClick(Marker marker) {
 
                         FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
+                        final LinearLayout question = (LinearLayout) frameLayout.findViewById(R.id.linearLayoutCard);
+
+                        TextView questionText = (TextView) question.findViewById(R.id.tvQuestionText);
+                        questionText.setText(marker.getTitle());
+
+                        LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                        buttonMargins.setMargins(0, 16, 0, 16);
+
+                        Button option1 = new Button(getActivity());
+                        option1.setText("Yes, questions are awesome!");
+                        option1.setBackgroundColor(Color.parseColor("#F44336"));
+                        option1.setTextColor(Color.WHITE);
+                        option1.setElevation(2);
+                        option1.setLayoutParams(buttonMargins);
+
+                        option1.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                                tvMargins.setMargins(0, 24, 0, 16);
+
+                                TextView yourtv = new TextView(getActivity());
+                                yourtv.setTextColor(Color.parseColor("#2196f3"));
+                                yourtv.setText("Thanks for your feedback. Find out how SMRT is improving your daily ride on train services in Singapore every day >");
+                                yourtv.setLayoutParams(tvMargins);
+                                question.addView(yourtv);
+
+                                Button analysis = new Button(getActivity());
+
+                                LinearLayout.LayoutParams newbutton = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                                newbutton.setMargins(0, 16, 0, 16);
+
+                                analysis.setText("View community answers");
+                                analysis.setBackgroundColor(Color.parseColor("#2196F3"));
+                                analysis.setTextColor(Color.WHITE);
+                                analysis.setTextSize(10);
+                                analysis.setElevation(2);
+                                analysis.setLayoutParams(newbutton);
+
+                                analysis.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+
+                                        List<LatLng> redlist = new ArrayList<LatLng>();
+
+                                        redlist.add(new LatLng(1.381, 103.844));
+                                        redlist.add(new LatLng(1.379, 103.841));
+                                        redlist.add(new LatLng(1.382, 103.845));
+                                        redlist.add(new LatLng(1.384, 103.840));
+
+                                        // Create a heat map tile provider, passing it the latlngs of the police stations.
+                                        HeatmapTileProvider mProvider = new HeatmapTileProvider.Builder()
+                                                .data(redlist)
+                                                .build();
+                                        // Add a tile overlay to the map, using the heat map tile provider.
+                                        mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+
+
+                                        List<LatLng> whitelist = new ArrayList<LatLng>();;
+
+                                        whitelist.add(new LatLng(1.380, 103.842));
+                                        whitelist.add(new LatLng(1.381, 103.843));
+                                        whitelist.add(new LatLng(1.378, 103.848));
+                                        whitelist.add(new LatLng(1.379, 103.839));
+
+                                        // Create a heat map tile provider, passing it the latlngs of the police stations.
+                                        HeatmapTileProvider whiteProvider = new HeatmapTileProvider.Builder()
+                                                .data(redlist)
+                                                .build();
+                                        // Add a tile overlay to the map, using the heat map tile provider.
+                                        mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
+
+
+                                    }
+                                });
+
+                                question.addView(analysis);
+                            }
+                        });
+
+                        question.addView(option1);
+
+                        Button option2 = new Button(getActivity());
+                        option2.setText("No, I think we can do better than just questions.");
+                        option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
+                        option2.setTextColor(Color.BLACK);
+                        option2.setElevation(2);
+                        option2.setLayoutParams(buttonMargins);
+                        question.addView(option2);
 
                         View tempFrom = frameLayout.getChildAt(0);
                         frameLayout.bringChildToFront(tempFrom);

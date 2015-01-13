@@ -100,6 +100,7 @@
     <orderEntry type="library" exported="" name="support-annotations-21.0.3" level="project" />
     <orderEntry type="library" exported="" name="butterknife-6.0.0" level="project" />
     <orderEntry type="library" exported="" name="joda-time-2.6" level="project" />
+    <orderEntry type="library" exported="" name="android-maps-utils-0.3.4" level="project" />
     <orderEntry type="library" exported="" name="bolts-android-1.1.2" level="project" />
     <orderEntry type="library" exported="" name="picasso-2.4.0" level="project" />
     <orderEntry type="module" module-name="stickyscrollviewitems" exported="" />
