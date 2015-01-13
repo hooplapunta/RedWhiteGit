@@ -1,44 +1,24 @@
 package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ListView;
 
 import me.redwhite.redwhite.R;
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link BrowseCommunityFragment.OnFragmentInteractionListener} interface
+ * {@link FragmentTransitionFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link BrowseCommunityFragment#newInstance} factory method to
+ * Use the {@link FragmentTransitionFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class BrowseCommunityFragment extends Fragment {
-
-    final String[] username ={"#NYP",
-            "#SP",
-            "#TP"};
-    final String[] questions ={"Nanyang Polytechnic",
-            "Singapore Polytechnic",
-            "Temasek Polytechnic"};
-    final Integer[] imageId ={
-            R.drawable.user1,
-            R.drawable.user2,
-            R.drawable.user2
-    };
-    ListView list;
-    String userId;
-    String questionDetail;
-
+public class FragmentTransitionFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -56,11 +36,11 @@ public class BrowseCommunityFragment extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment BrowseCommunityGroupFragment.
+     * @return A new instance of fragment FragmentTransitionFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static BrowseCommunityFragment newInstance(String param1, String param2) {
-        BrowseCommunityFragment fragment = new BrowseCommunityFragment();
+    public static FragmentTransitionFragment newInstance(String param1, String param2) {
+        FragmentTransitionFragment fragment = new FragmentTransitionFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -68,7 +48,7 @@ public class BrowseCommunityFragment extends Fragment {
         return fragment;
     }
 
-    public BrowseCommunityFragment() {
+    public FragmentTransitionFragment() {
         // Required empty public constructor
     }
 
@@ -85,7 +65,7 @@ public class BrowseCommunityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_browse_community_group, container, false);
+        return inflater.inflate(R.layout.fragment_fragment_transition, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -93,25 +73,6 @@ public class BrowseCommunityFragment extends Fragment {
         if (mListener != null) {
             mListener.onFragmentInteraction(uri);
         }
-    }
-
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        CustomListView adapter = new CustomListView(getActivity(),questions,imageId,username);
-        list = (ListView) getActivity().findViewById(R.id.listViewQuestions);
-        list.setAdapter(adapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                userId = username[position];
-                questionDetail = questions[position];
-                Intent myIntent = new Intent(getActivity().getApplicationContext() ,QuestionDetailActivity.class);
-                myIntent.putExtra("username", userId);
-                myIntent.putExtra("question", questionDetail);
-                startActivity(myIntent);
-            }
-        });
-
-        super.onViewCreated(view, savedInstanceState);
     }
 
     @Override
