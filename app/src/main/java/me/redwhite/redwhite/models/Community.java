@@ -74,7 +74,7 @@ public class Community implements FirebaseNode{
     }
 
     public static void findNodes(ValueEventListener listener) {
-        Firebase ref = new Firebase(FIREBASEPATH + "community/");
+        Firebase ref = new Firebase(FIREBASEPATH + "community");
         ref.addListenerForSingleValueEvent(listener);
     }
 

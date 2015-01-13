@@ -10,9 +10,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.GenericTypeIndicator;
+import com.firebase.client.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Objects;
+
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.models.Community;
+import me.redwhite.redwhite.utils.CommunityListAdapter;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -85,7 +98,7 @@ public class BrowseCommunityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_browse_community_group, container, false);
+        return inflater.inflate(R.layout.fragment_browse_community, container, false);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -96,20 +109,44 @@ public class BrowseCommunityFragment extends Fragment {
     }
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
-        CustomListView adapter = new CustomListView(getActivity(),questions,imageId,username);
-        list = (ListView) getActivity().findViewById(R.id.listViewQuestions);
-        list.setAdapter(adapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+        Community.findNodes(new ValueEventListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                userId = username[position];
-                questionDetail = questions[position];
-                Intent myIntent = new Intent(getActivity().getApplicationContext() ,QuestionDetailActivity.class);
-                myIntent.putExtra("username", userId);
-                myIntent.putExtra("question", questionDetail);
-                startActivity(myIntent);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                List<Community> cList = new ArrayList<Community>();
+
+                //GenericTypeIndicator<List<Community>> t = new GenericTypeIndicator<List<Community>>() {};
+                //cList = dataSnapshot.getValue(t);
+
+                HashMap<String, Community> temp = new HashMap<String, Community>();
+                temp = (HashMap<String, Community>) dataSnapshot.getValue();
+                cList.addAll(temp.values());
+
+                CommunityListAdapter adapter = new CommunityListAdapter(getActivity(), cList);
+                list = (ListView) getActivity().findViewById(R.id.listViewQuestions);
+                list.setAdapter(adapter);
+
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        userId = username[position];
+                        questionDetail = questions[position];
+                        Intent myIntent = new Intent(getActivity().getApplicationContext() ,QuestionDetailActivity.class);
+                        myIntent.putExtra("username", userId);
+                        myIntent.putExtra("question", questionDetail);
+                        startActivity(myIntent);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
             }
         });
+
+
 
         super.onViewCreated(view, savedInstanceState);
     }
