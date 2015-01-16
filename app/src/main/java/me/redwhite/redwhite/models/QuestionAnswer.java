@@ -82,7 +82,7 @@ public class QuestionAnswer {
                 (String)map.get("answered_username"),
                 (double)map.get("lat"),
                 (double)map.get("lng"),
-                (String)map.get("question_answer"),
+                (Long.toString((Long)map.get("question_answer"))),
                 (String)map.get("response_data"),
                 (String)map.get("response_datetime")
         );

@@ -323,7 +323,7 @@ public class Question implements FirebaseNode{
                 (double) _location.get("lat"),
                 (double) _location.get("lng"),
                 (String) _location.get("name"),
-                (int) _location.get("proximity"),
+                (int)(long) _location.get("proximity"),
                 (boolean) _location.get("trigger")
         );
 
@@ -335,10 +335,11 @@ public class Question implements FirebaseNode{
             {
                 QuestionOption qo = new QuestionOption();
                 qo.setKey(e.getKey());
+                qo.set_answers(new ArrayList<QuestionAnswer>());
 
                 Map<String, Object> answers = (Map<String, Object>)e.getValue();
                 for(Map.Entry<String, Object> x: answers.entrySet()) {
-                    qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String,Object>)x.getValue()));
+                    qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
                 }
 
                 this._options.add(qo);

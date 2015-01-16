@@ -99,7 +99,7 @@ public class SingleCommunityActivity extends Activity {
 
                 final ArrayList<Question> qList = Question.convertListFromMap(map);
 
-                MiniQuestionListAdapter adapter = new MiniQuestionListAdapter(getApplicationContext(), qList);
+                MiniQuestionListAdapter adapter = new MiniQuestionListAdapter(SingleCommunityActivity.this, qList);
                 list = (ListView) findViewById(R.id.listViewQuestions);
                 list.setAdapter(adapter);
                 list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
