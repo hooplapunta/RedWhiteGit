@@ -357,10 +357,10 @@ public class Question implements FirebaseNode{
                 (String)map.get("for_modifier"),
                 (String)map.get("image_url"),
                 (String)map.get("question"),
-                (int)map.get("responses"),
+                (int)(long)map.get("responses"),
                 (String)map.get("type"),
                 (String)map.get("updated_datetime"),
-                (int)map.get("views"),
+                (int)(long)map.get("views"),
                 (Map<String,Object>)map.get("for_communities"),
                 (Map<String,Object>)map.get("location"),
                 (Map<String,Object>)map.get("options")

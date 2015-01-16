@@ -92,7 +92,9 @@ public class SingleCommunityActivity extends Activity {
 
                 for(Object o: arrayList)
                 {
-                    map.put(o.toString(), o);
+                    if(o != null) {
+                        map.put(o.toString(), o);
+                    }
                 }
 
                 final ArrayList<Question> qList = Question.convertListFromMap(map);
