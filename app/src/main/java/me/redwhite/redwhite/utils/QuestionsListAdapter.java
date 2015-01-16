@@ -43,7 +43,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
         buttonMargins.setMargins(0, 16, 0, 16);
 
         // Change question display based on type
-        switch(questions.get(position).QuestionType)
+        switch(questions.get(position).getType())
         {
             case "TwoOptions":
                 Button option1 = new Button(context);
@@ -116,7 +116,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
 
 
         TextView tvQuestionText = (TextView) v.findViewById(R.id.tvQuestionText);
-        tvQuestionText.setText(questions.get(position).QuestionText);
+        tvQuestionText.setText(questions.get(position).getQuestion());
 
         return v;
     }

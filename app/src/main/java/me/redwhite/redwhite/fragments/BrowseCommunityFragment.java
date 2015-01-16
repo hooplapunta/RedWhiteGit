@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.SingleCommunityActivity;
 import me.redwhite.redwhite.models.Community;
 import me.redwhite.redwhite.utils.CommunityListAdapter;
 
@@ -37,17 +38,6 @@ import me.redwhite.redwhite.utils.CommunityListAdapter;
  */
 public class BrowseCommunityFragment extends Fragment {
 
-    final String[] username ={"#NYP",
-            "#SP",
-            "#TP"};
-    final String[] questions ={"Nanyang Polytechnic",
-            "Singapore Polytechnic",
-            "Temasek Polytechnic"};
-    final Integer[] imageId ={
-            R.drawable.user1,
-            R.drawable.user2,
-            R.drawable.user2
-    };
     ListView list;
     String userId;
     String questionDetail;
@@ -114,14 +104,7 @@ public class BrowseCommunityFragment extends Fragment {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                List<Community> cList = new ArrayList<Community>();
-
-                //GenericTypeIndicator<List<Community>> t = new GenericTypeIndicator<List<Community>>() {};
-                //cList = dataSnapshot.getValue(t);
-
-                HashMap<String, Community> temp = new HashMap<String, Community>();
-                temp = (HashMap<String, Community>) dataSnapshot.getValue();
-                cList.addAll(temp.values());
+                final List<Community> cList = Community.convertListFromMap((HashMap<String, Object>)dataSnapshot.getValue());
 
                 CommunityListAdapter adapter = new CommunityListAdapter(getActivity(), cList);
                 list = (ListView) getActivity().findViewById(R.id.listViewQuestions);
@@ -130,11 +113,11 @@ public class BrowseCommunityFragment extends Fragment {
                 list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        userId = username[position];
-                        questionDetail = questions[position];
-                        Intent myIntent = new Intent(getActivity().getApplicationContext() ,QuestionDetailActivity.class);
-                        myIntent.putExtra("username", userId);
-                        myIntent.putExtra("question", questionDetail);
+
+                        //TODO: Wire to the SingleCommunity Activity
+
+                        Intent myIntent = new Intent(getActivity().getApplicationContext(), SingleCommunityActivity.class);
+                        myIntent.putExtra("shortname", cList.get(position).getShortname());
                         startActivity(myIntent);
                     }
                 });

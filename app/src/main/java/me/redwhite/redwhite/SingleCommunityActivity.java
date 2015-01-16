@@ -19,6 +19,7 @@ import android.widget.ListView;
 
 import me.redwhite.redwhite.fragments.CustomListView;
 import me.redwhite.redwhite.fragments.QuestionDetailActivity;
+import me.redwhite.redwhite.utils.MiniQuestionListAdapter;
 
 
 public class SingleCommunityActivity extends Activity {
@@ -43,17 +44,13 @@ public class SingleCommunityActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-
         setContentView(R.layout.activity_single_community);
         if (savedInstanceState == null) {
-//            getSupportFragmentManager().beginTransaction()
-//                    .add(R.id.container, new PlaceholderFragment())
-//                    .commit();
+
         }
 
-        // Set up listview for the community
-        CustomListView adapter = new CustomListView(this,questions,imageId,username);
+        // Set up listview for the list of questions asked by the users in the community
+        MiniQuestionListAdapter adapter = new MiniQuestionListAdapter(this, null);
         list = (ListView) findViewById(R.id.listViewQuestions);
         list.setAdapter(adapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
