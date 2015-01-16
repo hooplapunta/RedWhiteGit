@@ -261,9 +261,9 @@ public class BrowseQuestionsFragment extends Fragment {
 
         List<Question> listQuestions = new ArrayList<Question>();
         listQuestions.add(new Question());
-        listQuestions.add(new Question("CompleteOptions"));
-        listQuestions.add(new Question("FuzzyText"));
-        listQuestions.add(new Question("Photo"));
+        //listQuestions.add(new Question("CompleteOptions"));
+        //listQuestions.add(new Question("FuzzyText"));
+        //listQuestions.add(new Question("Photo"));
         listQuestions.add(new Question());
 
         // Init Question Cards

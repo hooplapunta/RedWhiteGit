@@ -16,9 +16,20 @@ import android.os.Build;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
+
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import me.redwhite.redwhite.fragments.CustomListView;
 import me.redwhite.redwhite.fragments.QuestionDetailActivity;
+import me.redwhite.redwhite.models.Community;
+import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.utils.MiniQuestionListAdapter;
 
 
@@ -49,21 +60,66 @@ public class SingleCommunityActivity extends Activity {
 
         }
 
-        // Set up listview for the list of questions asked by the users in the community
-        MiniQuestionListAdapter adapter = new MiniQuestionListAdapter(this, null);
-        list = (ListView) findViewById(R.id.listViewQuestions);
-        list.setAdapter(adapter);
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        Bundle extras = this.getIntent().getExtras();
+        final String shortname = extras.getString("shortname");
+
+        Community.findNodeByKey(shortname, new ValueEventListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                userId = username[position];
-                questionDetail = questions[position];
-                Intent myIntent = new Intent(getApplicationContext() ,QuestionDetailActivity.class);
-                myIntent.putExtra("username", userId);
-                myIntent.putExtra("question", questionDetail);
-                startActivity(myIntent);
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                Community c = Community.convertFromMap((Map<String,Object>) dataSnapshot.getValue());
+
+                TextView shortName = (TextView)findViewById(R.id.tvShortName);
+                TextView fullName = (TextView)findViewById(R.id.tvFullName);
+
+                shortName.setText("#" + c.getShortname());
+                fullName.setText(c.getName());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
             }
         });
+
+        Question.findNodes(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                //Set up listview for the list of questions asked by the users in the community
+
+                ArrayList<Object> arrayList = (ArrayList<Object>)dataSnapshot.getValue();
+                Map<String, Object> map = new HashMap<String,Object>();
+
+                for(Object o: arrayList)
+                {
+                    map.put(o.toString(), o);
+                }
+
+                final ArrayList<Question> qList = Question.convertListFromMap(map);
+
+                MiniQuestionListAdapter adapter = new MiniQuestionListAdapter(getApplicationContext(), qList);
+                list = (ListView) findViewById(R.id.listViewQuestions);
+                list.setAdapter(adapter);
+                list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        userId = qList.get(position).getCreated_username();
+                        questionDetail = qList.get(position).getQuestion();
+                        Intent myIntent = new Intent(getApplicationContext() ,QuestionDetailActivity.class);
+                        myIntent.putExtra("username", userId);
+                        myIntent.putExtra("question", questionDetail);
+                        startActivity(myIntent);
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+
 
 
         joinBtn = (Button)findViewById(R.id.btn_join);
@@ -75,9 +131,13 @@ public class SingleCommunityActivity extends Activity {
                             joinBtn.setText("Leave");
                             joinBtn.setBackgroundColor(Color.GRAY);
 
+                            Community.addUserToCommunity(shortname, "ZZZ");
+
                         } else if (joinBtn.getText().equals("Leave")) {
                             joinBtn.setText("Join");
                             joinBtn.setBackgroundColor(Color.RED);
+
+                            Community.removeUserFromCommunity(shortname, "ZZZ");
                         }
 
                     }      }

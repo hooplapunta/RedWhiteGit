@@ -22,6 +22,7 @@
 
 
         <TextView
+            android:id="@+id/tvShortName"
             android:text="#NYP"
             android:textSize="20dp"
             android:layout_marginTop="25dp"
@@ -39,6 +40,7 @@
             android:background="#FF0000"/>
 
         <TextView
+            android:id="@+id/tvFullName"
             android:layout_width="180dp"
             android:layout_height="30dp"
             android:textSize="18dp"
