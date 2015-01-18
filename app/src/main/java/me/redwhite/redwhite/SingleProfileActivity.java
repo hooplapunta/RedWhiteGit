@@ -1,5 +1,6 @@
 package me.redwhite.redwhite;
 
+import android.app.Activity;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -10,24 +11,78 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+import android.widget.AdapterView;
+import android.widget.ListView;
+import android.widget.TextView;
+
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
+import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.User;
+import me.redwhite.redwhite.utils.MiniQuestionListAdapter;
+import me.redwhite.redwhite.utils.ProfileQuestionListAdapter;
 
 
+public class SingleProfileActivity extends Activity {
 
-public class SingleProfileActivity extends ActionBarActivity {
-
-
+    ListView plist;
+    String userId;
+    String questionDetail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_profile);
 
-
-        if (savedInstanceState == null) {
+        Firebase.setAndroidContext(getApplicationContext());
+    /*    if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, new PlaceholderFragment())
                     .commit();
-        }
+        }*/
+
+        Question.findNodes(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Object> arrayList = (ArrayList<Object>)dataSnapshot.getValue();
+
+                Map<String, Object> map = new HashMap<String,Object>();
+
+                for(Object o: arrayList)
+                {
+                    if(o != null) {
+                        map.put(o.toString(), o);
+                    }
+                }
+                final ArrayList<Question> listViewQuestions = Question.convertListFromMap(map);
+                ProfileQuestionListAdapter adapter = new ProfileQuestionListAdapter(SingleProfileActivity.this,listViewQuestions);
+                plist = (ListView)findViewById(R.id.listViewQuestions);
+                plist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        userId = listViewQuestions.get(position).getCreated_username();
+                        questionDetail = listViewQuestions.get(position).getQuestion();
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+
+
     }
 
 

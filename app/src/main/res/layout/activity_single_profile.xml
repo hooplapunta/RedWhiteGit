@@ -82,6 +82,7 @@
     android:layout_gravity="center_horizontal|top">
 
     <TextView
+        android:id="@+id/tvUser"
         android:text="Jun Hong"
         android:layout_marginLeft="35dp"
         android:layout_width="80dp"
@@ -96,6 +97,7 @@
     </LinearLayout>
 
     <ListView
+
         android:layout_marginLeft="20dp"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
