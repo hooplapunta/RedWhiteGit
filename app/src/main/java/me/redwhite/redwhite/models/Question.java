@@ -2,7 +2,9 @@ package me.redwhite.redwhite.models;
 
 import android.location.Location;
 
+import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.model.LatLng;
 
@@ -391,4 +393,21 @@ public class Question implements FirebaseNode{
         ref.addListenerForSingleValueEvent(listener);
     }
 
+    public static void findQuestionsAnsweredByUser(String username, ValueEventListener listener, final ArrayList<Question> list) {
+        Firebase ref = new Firebase(FIREBASEPATH + "question/");
+        ref.orderByChild("created_username").equalTo(username).addListenerForSingleValueEvent(listener);
+
+        ref.orderByChild("created_username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                ArrayList<Question> q = Question.convertListFromMap((HashMap<String, Object>)dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
+
+    }
 }

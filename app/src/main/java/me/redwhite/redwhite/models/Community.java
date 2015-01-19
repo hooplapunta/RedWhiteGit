@@ -3,6 +3,7 @@ package me.redwhite.redwhite.models;
 import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -123,6 +124,7 @@ public class Community implements FirebaseNode{
         }
     }
 
+    // TODO: Update when the key for question changes
     public Community(String description, String imageurl, String name, String shortname, boolean temp, ArrayList<Object> questions, Map<String, Object> users) {
         this.description = description;
         this.imageurl = imageurl;
@@ -132,9 +134,11 @@ public class Community implements FirebaseNode{
         this._questions = new ArrayList<QuestionStatus>();
         this._users = new ArrayList<String>();
 
-        for (Object e : questions) {
+        for (int i = 0; i < questions.size(); i ++) {
+            Object e = questions.get(i);
+
             if(e != null) {
-                this._questions.add(new QuestionStatus("???", (boolean) e));
+                this._questions.add(new QuestionStatus(Integer.toString(i), (boolean) e));
             }
         }
 
@@ -183,7 +187,7 @@ public class Community implements FirebaseNode{
     {
         Firebase ref = new Firebase(FIREBASEPATH + "community/" + key).child("users");
         Map<String, Object> users = new HashMap<String, Object>();
-        users.put("user", true);
+        users.put(user, true);
         ref.updateChildren(users);
     }
 
@@ -191,5 +195,32 @@ public class Community implements FirebaseNode{
     {
         Firebase ref = new Firebase(FIREBASEPATH + "community/" + key).child("users").child(user);
         ref.removeValue();
+    }
+
+    public static String addNode(Community c) {
+        String key = null;
+
+        Firebase ref = new Firebase(FIREBASEPATH + "question_answer/");
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> m = mapper.convertValue(c, Map.class);
+
+        Firebase newRef = ref.push();
+        newRef.setValue(m);
+
+        return newRef.getKey();
+    }
+
+    public static String editNode(QuestionAnswer qa) {
+        String key = null;
+
+        Firebase ref = new Firebase(FIREBASEPATH + "question_answer/" +qa.getQuestion_answer());
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> m = mapper.convertValue(qa, Map.class);
+
+        ref.updateChildren(m);
+
+        return qa.getQuestion_answer();
     }
 }

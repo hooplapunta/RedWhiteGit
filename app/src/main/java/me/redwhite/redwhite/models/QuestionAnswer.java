@@ -1,12 +1,17 @@
 package me.redwhite.redwhite.models;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firebase.client.Firebase;
+import com.firebase.client.ServerValue;
+import com.firebase.client.ValueEventListener;
+
 import java.util.ArrayList;
 import java.util.Map;
 
 /**
  * Created by Rong Kang on 1/16/2015.
  */
-public class QuestionAnswer {
+public class QuestionAnswer implements FirebaseNode{
 
     String answered_username;
     double lat;
@@ -14,6 +19,7 @@ public class QuestionAnswer {
     String question_answer;
     String response_data;
     String response_datetime;
+    String question_key;
 
     public String getAnswered_username() {
         return answered_username;
@@ -63,17 +69,26 @@ public class QuestionAnswer {
         this.response_datetime = response_datetime;
     }
 
+    public String getQuestion_key() {
+        return question_key;
+    }
+
+    public void setQuestion_key(String question_key) {
+        this.question_key = question_key;
+    }
+
     public QuestionAnswer(){
 
     }
 
-    public QuestionAnswer(String answered_username, double lat, double lng, String question_answer, String response_data, String response_datetime) {
+    public QuestionAnswer(String answered_username, double lat, double lng, String question_answer, String response_data, String response_datetime, String question_key) {
         this.answered_username = answered_username;
         this.lat = lat;
         this.lng = lng;
         this.question_answer = question_answer;
         this.response_data = response_data;
         this.response_datetime = response_datetime;
+        this.question_key = question_key;
     }
 
     public static QuestionAnswer convertFromMap(Map<String, Object> map)
@@ -84,7 +99,48 @@ public class QuestionAnswer {
                 (double)map.get("lng"),
                 (Long.toString((Long)map.get("question_answer"))),
                 (String)map.get("response_data"),
-                (String)map.get("response_datetime")
+                (String)map.get("response_datetime"),
+                null
         );
+    }
+
+    public static void findNodes(ValueEventListener listener) {
+        Firebase ref = new Firebase(FIREBASEPATH + "question_answer");
+        ref.addListenerForSingleValueEvent(listener);
+    }
+
+    public static void findNodeByKey(String key, ValueEventListener listener) {
+        Firebase ref = new Firebase(FIREBASEPATH + "question_answer/" + key);
+        ref.addListenerForSingleValueEvent(listener);
+    }
+
+    public static String addNode(QuestionAnswer qa) {
+        String key = null;
+
+        Firebase ref = new Firebase(FIREBASEPATH + "question_answer/");
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> m = mapper.convertValue(qa, Map.class);
+
+        Firebase newRef = ref.push();
+        newRef.setValue(m);
+
+        qa.setQuestion_answer(newRef.getKey());
+        editNode(qa);
+
+        return newRef.getKey();
+    }
+
+    public static String editNode(QuestionAnswer qa) {
+        String key = null;
+
+        Firebase ref = new Firebase(FIREBASEPATH + "question_answer/" +qa.getQuestion_answer());
+
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> m = mapper.convertValue(qa, Map.class);
+
+        ref.updateChildren(m);
+
+        return qa.getQuestion_answer();
     }
 }
