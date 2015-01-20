@@ -2,6 +2,7 @@ package me.redwhite.redwhite.fragments;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
@@ -12,6 +13,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.SingleProfileActivity;
 
 
 public class QuestionDetailActivity extends Activity {
@@ -82,12 +84,8 @@ public class QuestionDetailActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.menu_question_detail, menu);
+        getMenuInflater().inflate(R.menu.menu_question_detail, menu);
         return true;
-
-
-
-
     }
 
     @Override
@@ -100,6 +98,14 @@ public class QuestionDetailActivity extends Activity {
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }
+
+        if (id == R.id.menuShowProfile)
+        {
+            Intent myIntent = new Intent(this, SingleProfileActivity.class);
+            //TODO: Hookup to the right user id
+            myIntent.putExtra("username", "BAA");
+            startActivity(myIntent);
         }
 
         return super.onOptionsItemSelected(item);

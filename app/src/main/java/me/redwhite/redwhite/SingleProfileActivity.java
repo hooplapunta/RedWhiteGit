@@ -1,6 +1,7 @@
 package me.redwhite.redwhite;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import me.redwhite.redwhite.fragments.QuestionDetailActivity;
 import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.models.User;
 import me.redwhite.redwhite.utils.MiniQuestionListAdapter;
@@ -49,27 +51,25 @@ public class SingleProfileActivity extends Activity {
                     .commit();
         }*/
 
-        Question.findNodes(new ValueEventListener() {
+        Question.findQuestionsAnsweredByUser("BAA", new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                ArrayList<Object> arrayList = (ArrayList<Object>)dataSnapshot.getValue();
-
-                Map<String, Object> map = new HashMap<String,Object>();
-
-                for(Object o: arrayList)
-                {
-                    if(o != null) {
-                        map.put(o.toString(), o);
-                    }
-                }
+                Map<String, Object> map = (Map<String, Object>) dataSnapshot.getValue();
                 final ArrayList<Question> listViewQuestions = Question.convertListFromMap(map);
-                ProfileQuestionListAdapter adapter = new ProfileQuestionListAdapter(SingleProfileActivity.this,listViewQuestions);
-                plist = (ListView)findViewById(R.id.listViewQuestions);
+
+                ProfileQuestionListAdapter adapter = new ProfileQuestionListAdapter(SingleProfileActivity.this, listViewQuestions);
+                plist = (ListView) findViewById(R.id.listViewQuestions);
+                plist.setAdapter(adapter);
                 plist.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         userId = listViewQuestions.get(position).getCreated_username();
                         questionDetail = listViewQuestions.get(position).getQuestion();
+
+                        Intent myIntent = new Intent(SingleProfileActivity.this, QuestionDetailActivity.class);
+                        myIntent.putExtra("username", userId);
+                        myIntent.putExtra("question", questionDetail);
+                        startActivity(myIntent);
 
                     }
                 });
@@ -80,9 +80,6 @@ public class SingleProfileActivity extends Activity {
 
             }
         });
-
-
-
     }
 
 

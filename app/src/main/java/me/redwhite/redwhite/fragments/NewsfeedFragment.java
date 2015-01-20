@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.app.Fragment;
 import android.os.CountDownTimer;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.SingleProfileActivity;
 import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.utils.QuestionsListAdapter;
 
@@ -206,6 +210,25 @@ public class NewsfeedFragment extends Fragment {
                 }
             }
         }.start();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_newsfeed, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.menuShowProfile)
+        {
+            Intent myIntent = new Intent(getActivity(), SingleProfileActivity.class);
+            //TODO: Hookup to the right user id
+            myIntent.putExtra("username", userId);
+            startActivity(myIntent);
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
     public void addMarkers()

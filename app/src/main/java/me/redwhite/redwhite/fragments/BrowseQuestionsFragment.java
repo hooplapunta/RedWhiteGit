@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
@@ -23,6 +24,9 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
@@ -39,9 +43,12 @@ import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.models.Community;
 import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.User;
 import me.redwhite.redwhite.utils.QuestionsListAdapter;
 
 
@@ -257,24 +264,90 @@ public class BrowseQuestionsFragment extends Fragment {
             }
         });
 
-
-
         List<Question> listQuestions = new ArrayList<Question>();
-        listQuestions.add(new Question());
-        //listQuestions.add(new Question("CompleteOptions"));
-        //listQuestions.add(new Question("FuzzyText"));
-        //listQuestions.add(new Question("Photo"));
-        listQuestions.add(new Question());
+        listQuestions.add(new Question("twooption"));
+        listQuestions.add(new Question("completeoption"));
+        listQuestions.add(new Question("fuzzytext"));
+        listQuestions.add(new Question("photo"));
+        listQuestions.add(new Question("twooption"));
 
-        // Init Question Cards
-        QuestionsListAdapter questionsListAdapter = new QuestionsListAdapter(getActivity(), 0, listQuestions);
+        // NEW QUESTION RETRIEVAL
+        User u = new User();
+        u.set_communities_joined(new ArrayList<String>());
+        u.get_communities_joined().add("sg");
+        u.get_communities_joined().add("nyp");
+
+        final ArrayList<Question> qlist = new ArrayList<Question>();
+        final QuestionsListAdapter adapter = new QuestionsListAdapter(getActivity(), 0, qlist);
         ListView listViewQuestions = (ListView) v.findViewById(R.id.listViewQuestions);
         listViewQuestions.addHeaderView(new View(v.getContext()));
         listViewQuestions.addFooterView(new View(v.getContext()));
-        listViewQuestions.setAdapter(questionsListAdapter);
+
+        class RecommendedQuestionsTask extends AsyncTask<String, Boolean, ArrayList<Question>> {
+            @Override
+            protected void onPreExecute() {
+                // show the progress indicator
+            }
+
+            @Override
+            protected ArrayList<Question> doInBackground(String... communities) {
+                final ArrayList<Question> incoming = new ArrayList<Question>();
+
+                for(String communityKey: communities) {
+                    Community.findNodeByKey(communityKey, new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Community c = Community.convertFromMap((Map<String, Object>)dataSnapshot.getValue());
+
+                            for(Community.QuestionStatus qs : c.get_questions()) {
+                                Question.findNodeByKey(qs.question, new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        Question q = Question.convertFromMap((Map<String, Object>)dataSnapshot.getValue());
+                                        adapter.add(q);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(FirebaseError firebaseError) {
+
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+
+                        }
+                    });
+                }
+
+                return incoming;
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Question> list) {
+                //qlist.addAll(list);
+
+                // TODO: hide progress bar
+            }
+
+            @Override
+            protected void onProgressUpdate(Boolean... values) {
+                super.onProgressUpdate(values);
+            }
+        }
+
+        RecommendedQuestionsTask task = new RecommendedQuestionsTask();
+        task.execute(u.get_communities_joined().toArray(new String[]{}));
+
+        //TEST
+        listViewQuestions.setAdapter(adapter);
 
         return v;
     }
+
+
 
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -317,7 +390,6 @@ public class BrowseQuestionsFragment extends Fragment {
 
             }
         });
-
 
     }
 

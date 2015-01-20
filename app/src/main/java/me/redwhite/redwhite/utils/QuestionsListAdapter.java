@@ -45,7 +45,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
         // Change question display based on type
         switch(questions.get(position).getType())
         {
-            case "TwoOptions":
+            case "twooption":
                 Button option1 = new Button(context);
                 option1.setText("Yes, questions are awesome!");
                 option1.setBackgroundColor(Color.parseColor("#F44336"));
@@ -64,7 +64,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
                 layout.addView(option2);
 
                 break;
-            case "CompleteOptions":
+            case "completeoption":
                 TextView tv = new TextView(context);
                 tv.setText("Your answer:");
                 layout.addView(tv);
@@ -90,7 +90,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
             case "CompleteTwoOptions":
 
                 break;
-            case "FuzzyText":
+            case "fuzzytext":
                 EditText text = new EditText(context);
                 text.setHint("Enter the corect answer...");
                 text.setElevation(2);
@@ -99,7 +99,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
                 layout.addView(text);
                 break;
 
-            case "Photo":
+            case "photo":
                 Button camerabutton = new Button(context);
                 camerabutton.setText("Take a photo");
                 camerabutton.setBackgroundColor(Color.parseColor("#F44336"));

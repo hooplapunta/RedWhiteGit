@@ -87,15 +87,7 @@ public class SingleCommunityActivity extends Activity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 //Set up listview for the list of questions asked by the users in the community
 
-                ArrayList<Object> arrayList = (ArrayList<Object>)dataSnapshot.getValue();
-                Map<String, Object> map = new HashMap<String,Object>();
-
-                for(Object o: arrayList)
-                {
-                    if(o != null) {
-                        map.put(o.toString(), o);
-                    }
-                }
+                Map<String, Object> map = (Map<String, Object>)dataSnapshot.getValue();
 
                 final ArrayList<Question> qList = Question.convertListFromMap(map);
 

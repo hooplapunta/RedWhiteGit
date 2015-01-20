@@ -277,6 +277,10 @@ public class Question implements FirebaseNode{
 
     }
 
+    public Question(String type) {
+        this.type = type;
+    }
+
     public Question(String action, String created_datetime, String created_username, String expiry_datetime, boolean expiry_status, String for_modifier, String image_url, String question, int responses, String type, String updated_datetime, int views, ArrayList<String> _for_communities, QuestionLocation _location, ArrayList<QuestionOption> _options) {
         this.action = action;
         this.created_datetime = created_datetime;
@@ -312,39 +316,45 @@ public class Question implements FirebaseNode{
 
         this._for_communities = new ArrayList<String>();
 
-        for(Map.Entry<String, Object> e: _for_communities.entrySet())
-        {
-            if(e != null)
+        if (_for_communities != null) {
+            for(Map.Entry<String, Object> e: _for_communities.entrySet())
             {
-                this._for_communities.add(e.getKey());
+                if(e != null)
+                {
+                    this._for_communities.add(e.getKey());
+                }
             }
         }
 
-        this._location = new QuestionLocation(
-                (String) _location.get("geofence"),
-                (double) _location.get("lat"),
-                (double) _location.get("lng"),
-                (String) _location.get("name"),
-                (int)(long) _location.get("proximity"),
-                (boolean) _location.get("trigger")
-        );
+        if (_location != null) {
+            this._location = new QuestionLocation(
+                    (String) _location.get("geofence"),
+                    (double) _location.get("lat"),
+                    (double) _location.get("lng"),
+                    (String) _location.get("name"),
+                    (int)(long) _location.get("proximity"),
+                    (boolean) _location.get("trigger")
+            );
+        }
 
         this._options = new ArrayList<QuestionOption>();
 
-        for(Map.Entry<String, Object> e: _options.entrySet())
-        {
-            if (e != null)
+        if (_options != null) {
+            for(Map.Entry<String, Object> e: _options.entrySet())
             {
-                QuestionOption qo = new QuestionOption();
-                qo.setKey(e.getKey());
-                qo.set_answers(new ArrayList<QuestionAnswer>());
+                if (e != null)
+                {
+                    QuestionOption qo = new QuestionOption();
+                    qo.setKey(e.getKey());
+                    qo.set_answers(new ArrayList<QuestionAnswer>());
 
-                Map<String, Object> answers = (Map<String, Object>)e.getValue();
-                for(Map.Entry<String, Object> x: answers.entrySet()) {
-                    qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
+                    Map<String, Object> answers = (Map<String, Object>)e.getValue();
+                    for(Map.Entry<String, Object> x: answers.entrySet()) {
+                        qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
+                    }
+
+                    this._options.add(qo);
                 }
-
-                this._options.add(qo);
             }
         }
     }
@@ -393,21 +403,12 @@ public class Question implements FirebaseNode{
         ref.addListenerForSingleValueEvent(listener);
     }
 
-    public static void findQuestionsAnsweredByUser(String username, ValueEventListener listener, final ArrayList<Question> list) {
+    public static void findQuestionsAnsweredByUser(String username, ValueEventListener listener) {
         Firebase ref = new Firebase(FIREBASEPATH + "question/");
         ref.orderByChild("created_username").equalTo(username).addListenerForSingleValueEvent(listener);
+    }
 
-        ref.orderByChild("created_username").equalTo(username).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                ArrayList<Question> q = Question.convertListFromMap((HashMap<String, Object>)dataSnapshot.getValue());
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
+    public static void findQuestionsForUser(ArrayList<String> communities_joined, ValueEventListener listener) {
+        Firebase cRef = new Firebase(FIREBASEPATH + "community/");
     }
 }

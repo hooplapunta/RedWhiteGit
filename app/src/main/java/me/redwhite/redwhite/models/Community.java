@@ -29,8 +29,8 @@ public class Community implements FirebaseNode{
 
     public class QuestionStatus
     {
-        String question;
-        boolean active;
+        public String question;
+        public boolean active;
 
         public QuestionStatus() {
         }

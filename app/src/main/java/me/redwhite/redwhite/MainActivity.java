@@ -41,9 +41,28 @@ public class MainActivity extends Activity
      */
     private CharSequence mTitle;
 
+    /**
+     * Currently logged in user in the application session
+     */
+    public User loggedInUser;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        //TODO: Come up with method to show a splashscreen with animation
+
+        // Ready Firebase
+        Firebase.setAndroidContext(this);
+
+        // Check for a logged in user
+        boolean isLoggedIn = loadLogin();
+
+        if (!isLoggedIn)
+        {
+            // redirect to signup activity
+        }
+
         setContentView(R.layout.activity_main);
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
@@ -54,24 +73,48 @@ public class MainActivity extends Activity
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+    }
 
-        //TEMP, TEST THE USER DATABASE
-        Firebase.setAndroidContext(this);
-        User.findNodeByKey("BAA", new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User node;
-                node = dataSnapshot.getValue(User.class);
-                node.key = dataSnapshot.getKey();
-                Toast.makeText(getApplicationContext(), node.toString(), Toast.LENGTH_LONG).show();
+    /**
+     * Retrieve the logged in user from shared preferences
+     * @return
+     */
+    private boolean loadLogin() {
+        boolean isLoggedIn = false;
+
+
+
+        //TODO: Check for saved user in shared preferences key?
+        if(true)
+        {
+            User.findNodeByKey("BAA", new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    User node;
+                    node = dataSnapshot.getValue(User.class);
+                    node.setKey(dataSnapshot.getKey());
+                    Toast.makeText(getApplicationContext(), node.toString(), Toast.LENGTH_LONG).show();
+                }
+
+                @Override
+                public void onCancelled(FirebaseError firebaseError) {
+
+                }
+            });
+            //TODO: Check with server if user is still alive
+            if(true)
+            {
+                // TODO: reload user credentials from server, with any updated lists of communities, friends
+                loggedInUser = new User();
+                loggedInUser.setKey("BAA");
+
+                // TODO: restore into shared preference
+
+                isLoggedIn = true;
             }
+        }
 
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-
-            }
-        });
-
+        return isLoggedIn;
     }
 
     @Override
