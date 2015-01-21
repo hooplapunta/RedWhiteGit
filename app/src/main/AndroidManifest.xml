@@ -53,7 +53,6 @@
         <activity
             android:name=".WelcomeActivity"
             android:label="@string/title_activity_welcome" >
-
         </activity>
         <activity
             android:name=".NewQuestionActivity"
@@ -77,8 +76,11 @@
         </activity>
         <activity
             android:name=".fragments.QuestionDetailActivity"
-            android:label="Friend's Activity">
-
+            android:label="Friend&apos;s Activity" >
+        </activity>
+        <activity
+            android:name=".NewUserActivity"
+            android:label="@string/title_activity_new_user" >
         </activity>
     </application>
 

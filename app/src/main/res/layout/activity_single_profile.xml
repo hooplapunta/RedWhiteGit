@@ -18,7 +18,8 @@
             android:layout_marginLeft="35dp"
             android:layout_width="80dp"
             android:layout_height="80dp"
-            android:layout_weight="0.10" />
+            android:layout_weight="0.10"
+            android:src="@drawable/user1"/>
 
 
         <TextView
@@ -98,7 +99,7 @@
 
     <ListView
 
-        android:layout_marginLeft="20dp"
+
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/listViewQuestions"
