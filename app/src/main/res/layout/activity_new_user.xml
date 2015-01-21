@@ -14,6 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <EditText
+        android:id="@+id/et_name"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="70dp"
         android:layout_width="150dp"
@@ -26,6 +27,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <EditText
+        android:id="@+id/et_username"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="70dp"
         android:layout_width="150dp"
@@ -38,6 +40,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <EditText
+        android:id="@+id/et_email"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="70dp"
         android:layout_width="150dp"
@@ -50,6 +53,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <EditText
+        android:id="@+id/et_postalCode"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="70dp"
         android:layout_width="150dp"
@@ -62,6 +66,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <EditText
+        android:id="@+id/et_password"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="70dp"
         android:layout_width="150dp"
@@ -73,6 +78,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
     <EditText
+        android:id="@+id/et_dob"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="70dp"
         android:layout_width="150dp"
@@ -84,22 +90,38 @@
         android:layout_marginTop="25dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal">ww
 
     <TextView
             android:text="Gender"
 
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-    <CheckBox
-        android:text="Male"
-        android:layout_marginLeft="20dp"
+   <RadioGroup
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content">
+
+       <RadioButton
+           android:id="@+id/rbMale"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="Male"/>
+       <RadioButton
+           android:id="@+id/rbFemale"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="Female"/>
+
+
+       </RadioGroup>
+</LinearLayout>
+
+    <Button
+        android:layout_marginTop="20dp"
+        android:layout_marginLeft="70dp"
+        android:text="Submit"
+        android:id="@+id/btn_submit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
-        <CheckBox
-            android:text="Female"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-</LinearLayout>
 
 </LinearLayout>
