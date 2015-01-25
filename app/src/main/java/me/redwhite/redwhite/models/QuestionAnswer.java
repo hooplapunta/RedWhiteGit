@@ -18,7 +18,7 @@ public class QuestionAnswer implements FirebaseNode{
     double lng;
     String question_answer;
     String response_data;
-    String response_datetime;
+    long response_datetime;
     String question_key;
 
     public String getAnswered_username() {
@@ -61,11 +61,11 @@ public class QuestionAnswer implements FirebaseNode{
         this.response_data = response_data;
     }
 
-    public String getResponse_datetime() {
+    public long getResponse_datetime() {
         return response_datetime;
     }
 
-    public void setResponse_datetime(String response_datetime) {
+    public void setResponse_datetime(long response_datetime) {
         this.response_datetime = response_datetime;
     }
 
@@ -81,7 +81,7 @@ public class QuestionAnswer implements FirebaseNode{
 
     }
 
-    public QuestionAnswer(String answered_username, double lat, double lng, String question_answer, String response_data, String response_datetime, String question_key) {
+    public QuestionAnswer(String answered_username, double lat, double lng, String question_answer, String response_data, long response_datetime, String question_key) {
         this.answered_username = answered_username;
         this.lat = lat;
         this.lng = lng;
@@ -97,10 +97,10 @@ public class QuestionAnswer implements FirebaseNode{
                 (String)map.get("answered_username"),
                 (double)map.get("lat"),
                 (double)map.get("lng"),
-                (Long.toString((Long)map.get("question_answer"))),
+                ((String)map.get("question_answer")),
                 (String)map.get("response_data"),
-                (String)map.get("response_datetime"),
-                null
+                (long)map.get("response_datetime"),
+                (String)map.get("question")
         );
     }
 

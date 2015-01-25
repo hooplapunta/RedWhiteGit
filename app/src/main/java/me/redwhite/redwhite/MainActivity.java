@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.support.v4.widget.DrawerLayout;
 import android.widget.Toast;
 
+import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -22,14 +25,16 @@ import com.firebase.client.ValueEventListener;
 
 import me.redwhite.redwhite.fragments.BrowseCommunityFragment;
 import me.redwhite.redwhite.fragments.BrowseQuestionsFragment;
+import me.redwhite.redwhite.fragments.BrowseQuestionsListFragment;
 import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
 import me.redwhite.redwhite.fragments.NewsfeedFragment;
 import me.redwhite.redwhite.fragments.OldNewsfeedFragment;
+import me.redwhite.redwhite.fragments.QuestionDetailActivity;
 import me.redwhite.redwhite.models.User;
 
 
-public class MainActivity extends Activity
-        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener {
+public class MainActivity extends FragmentActivity
+        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -50,71 +55,87 @@ public class MainActivity extends Activity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //TODO: Come up with method to show a splashscreen with animation
+        //TODO: Come up with method to show a splashscreen with animation within the activity_main layout
+        setContentView(R.layout.activity_main);
 
         // Ready Firebase
         Firebase.setAndroidContext(this);
 
         // Check for a logged in user
-        boolean isLoggedIn = loadLogin();
-
-        if (!isLoggedIn)
-        {
-            // redirect to signup activity
-        }
-
-        setContentView(R.layout.activity_main);
+        loadLoggedInUser();
 
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
 
+        // loadLoggedInUser handles the rest of the loading of the activity
+    }
+
+    private void loadActivityOnAuth() {
+
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
                 (DrawerLayout) findViewById(R.id.drawer_layout));
+
+        mNavigationDrawerFragment.selectItem(0);
     }
 
     /**
      * Retrieve the logged in user from shared preferences
      * @return
      */
-    private boolean loadLogin() {
-        boolean isLoggedIn = false;
-
-
+    private void loadLoggedInUser() {
 
         //TODO: Check for saved user in shared preferences key?
         if(true)
         {
-            User.findNodeByKey("BAA", new ValueEventListener() {
+            // TODO: reload username and password from shared preference
+            User.loginToFirebase("test@hotmail.com", "testing", new Firebase.AuthResultHandler() {
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    User node;
-                    node = dataSnapshot.getValue(User.class);
-                    node.setKey(dataSnapshot.getKey());
-                    Toast.makeText(getApplicationContext(), node.toString(), Toast.LENGTH_LONG).show();
+                public void onAuthenticated(AuthData authData) {
+
+                    User.findNodeByKey("BAA", new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot != null) {
+                                User user;
+
+                                // restore the user into activity
+                                user = dataSnapshot.getValue(User.class);
+                                user.setKey(dataSnapshot.getKey());
+                                loggedInUser = user;
+
+                                // call the activity to continue loading
+                                loadActivityOnAuth();
+                                Toast.makeText(getApplicationContext(), user.toString(), Toast.LENGTH_LONG).show();
+                            }
+                            else
+                            {
+                                // Login error, show the login screen
+                                Intent myIntent = new Intent(MainActivity.this, NewUserActivity.class);
+                                myIntent.putExtra("loginError", true);
+                                startActivity(myIntent);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+
+                        }
+                    });
                 }
 
                 @Override
-                public void onCancelled(FirebaseError firebaseError) {
-
+                public void onAuthenticationError(FirebaseError firebaseError) {
+                    // Login error, show the login screen
+                    Intent myIntent = new Intent(MainActivity.this, NewUserActivity.class);
+                    myIntent.putExtra("loginError", true);
+                    startActivity(myIntent);
                 }
             });
-            //TODO: Check with server if user is still alive
-            if(true)
-            {
-                // TODO: reload user credentials from server, with any updated lists of communities, friends
-                loggedInUser = new User();
-                loggedInUser.setKey("BAA");
-
-                // TODO: restore into shared preference
-
-                isLoggedIn = true;
-            }
         }
-
-        return isLoggedIn;
     }
 
     @Override
@@ -137,7 +158,7 @@ public class MainActivity extends Activity
                 break;
             case 3:
                 //TODO: Update
-                nextFragment = OldNewsfeedFragment.newInstance(null, null);
+                nextFragment = BrowseQuestionsListFragment.newInstance(null, null);
                 break;
             case 4:
                 nextFragment = OldNewsfeedFragment.newInstance(null, null);
@@ -165,6 +186,8 @@ public class MainActivity extends Activity
     public void onFragmentInteraction(String id) {
 
     }
+
+
 
     public void onSectionAttached(int number) {
         switch (number) {

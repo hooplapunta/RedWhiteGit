@@ -13,6 +13,8 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.balysv.materialripple.MaterialRippleLayout;
+
 import java.util.List;
 
 import me.redwhite.redwhite.R;
@@ -43,26 +45,34 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
         buttonMargins.setMargins(0, 16, 0, 16);
 
         // Change question display based on type
+        Question q = questions.get(position);
         switch(questions.get(position).getType())
         {
             case "twooption":
-                Button option1 = new Button(context);
-                option1.setText("Yes, questions are awesome!");
-                option1.setBackgroundColor(Color.parseColor("#F44336"));
-                option1.setTextColor(Color.WHITE);
-                option1.setElevation(2);
-                option1.setLayoutParams(buttonMargins);
 
-                layout.addView(option1);
+                // option 1 and option 2
+                Question.QuestionOption o1 = q.get_options().get(0);
+                if (o1 != null) {
+                    Button option1 = new Button(context);
+                    option1.setText(o1.getKey());
+                    option1.setBackgroundColor(Color.parseColor("#F44336"));
+                    option1.setTextColor(Color.WHITE);
+                    option1.setElevation(2);
+                    option1.setLayoutParams(buttonMargins);
 
-                Button option2 = new Button(context);
-                option2.setText("No, I think we can do better than just questions.");
-                option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
-                option2.setTextColor(Color.BLACK);
-                option2.setElevation(2);
-                option2.setLayoutParams(buttonMargins);
-                layout.addView(option2);
+                    layout.addView(option1);
+                }
 
+                Question.QuestionOption o2 = q.get_options().get(0);
+                if (o1 != null) {
+                    Button option2 = new Button(context);
+                    option2.setText("No, I think we can do better than just questions.");
+                    option2.setBackgroundColor(Color.parseColor("#ECEFF1"));
+                    option2.setTextColor(Color.BLACK);
+                    option2.setElevation(2);
+                    option2.setLayoutParams(buttonMargins);
+                    layout.addView(option2);
+                }
                 break;
             case "completeoption":
                 TextView tv = new TextView(context);

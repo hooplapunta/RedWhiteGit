@@ -3,6 +3,7 @@ package me.redwhite.redwhite.models;
 import android.util.Log;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.firebase.client.AuthData;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -169,6 +170,11 @@ public class User implements FirebaseNode{
         ref.addListenerForSingleValueEvent(listener);
     }
 
+    public static void findUserByEmail(String email, ValueEventListener listener) {
+        Firebase ref = new Firebase(FIREBASEPATH + "user/ ");
+        ref.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(listener);
+    }
+
     public static User convertFromMap(Map<String, Object> map) {
         return new User(
                 "???",
@@ -195,5 +201,15 @@ public class User implements FirebaseNode{
         }
 
         return c;
+    }
+
+    public static void loginToFirebase(String email, String password, Firebase.AuthResultHandler handler) {
+        Firebase ref = new Firebase(FIREBASEPATH);
+        ref.authWithPassword(email, password, handler);
+    }
+
+    public static void createUserFirebase(String email, String password, Firebase.ResultHandler handler) {
+        Firebase ref = new Firebase(FIREBASEPATH);
+        ref.createUser(email, password, handler);
     }
 }

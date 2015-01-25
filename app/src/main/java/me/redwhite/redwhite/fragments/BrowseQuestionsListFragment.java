@@ -4,11 +4,20 @@ import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import me.redwhite.redwhite.MainActivity;
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.utils.CacheFragmentStatePagerAdapter;
+import me.redwhite.redwhite.utils.SlidingTabLayout;
+import me.redwhite.redwhite.utils.ViewPagerTabListViewFragment;
+import me.redwhite.redwhite.utils.ViewPagerTabRecyclerViewFragment;
+import me.redwhite.redwhite.utils.ViewPagerTabScrollViewFragment;
 
 
 /**
@@ -30,6 +39,9 @@ public class BrowseQuestionsListFragment extends Fragment {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    private ViewPager viewPager;
+    private NavigationAdapter navigationAdapter;
 
     /**
      * Use this factory method to create a new instance of
@@ -66,7 +78,31 @@ public class BrowseQuestionsListFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
+
+        // Original inflater
+        //return inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
+
+        View v = inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
+
+
+
+
+        return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        navigationAdapter = new NavigationAdapter(((FragmentActivity)getActivity()).getSupportFragmentManager());
+        viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
+        viewPager.setAdapter(navigationAdapter);
+
+        SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
+        slidingTabLayout.setCustomTabView(R.layout.tab_indicator, android.R.id.text1);
+        slidingTabLayout.setSelectedIndicatorColors(getResources().getColor(R.color.accent));
+        slidingTabLayout.setDistributeEvenly(true);
+        slidingTabLayout.setViewPager(viewPager);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -106,6 +142,74 @@ public class BrowseQuestionsListFragment extends Fragment {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         public void onFragmentInteraction(Uri uri);
+    }
+
+    /**
+     * This adapter provides two types of fragments as an example.
+     * {@linkplain #createItem(int)} should be modified if you use this example for your app.
+     */
+    private static class NavigationAdapter extends CacheFragmentStatePagerAdapter {
+
+        private static final String[] TITLES = new String[]{"Applepie", "Butter Cookie", "Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread", "Honeycomb", "Ice Cream Sandwich", "Jelly Bean", "KitKat", "Lollipop"};
+
+        private int mScrollY;
+
+        public NavigationAdapter(FragmentManager fm) {
+            super(fm);
+        }
+
+        public void setScrollY(int scrollY) {
+            mScrollY = scrollY;
+        }
+
+        @Override
+        protected android.support.v4.app.Fragment createItem(int position) {
+            // Initialize fragments.
+            // Please be sure to pass scroll position to each fragments using setArguments.
+            android.support.v4.app.Fragment f;
+            final int pattern = position % 3;
+            switch (pattern) {
+                case 0: {
+                    f = new ViewPagerTabScrollViewFragment();
+                    if (0 <= mScrollY) {
+                        Bundle args = new Bundle();
+                        args.putInt(ViewPagerTabScrollViewFragment.ARG_SCROLL_Y, mScrollY);
+                        f.setArguments(args);
+                    }
+                    break;
+                }
+                case 1: {
+                    f = new ViewPagerTabListViewFragment();
+                    if (0 < mScrollY) {
+                        Bundle args = new Bundle();
+                        args.putInt(ViewPagerTabListViewFragment.ARG_INITIAL_POSITION, 1);
+                        f.setArguments(args);
+                    }
+                    break;
+                }
+                case 2:
+                default: {
+                    f = new ViewPagerTabRecyclerViewFragment();
+                    if (0 < mScrollY) {
+                        Bundle args = new Bundle();
+                        args.putInt(ViewPagerTabRecyclerViewFragment.ARG_INITIAL_POSITION, 1);
+                        f.setArguments(args);
+                    }
+                    break;
+                }
+            }
+            return f;
+        }
+
+        @Override
+        public int getCount() {
+            return TITLES.length;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return TITLES[position];
+        }
     }
 
 }
