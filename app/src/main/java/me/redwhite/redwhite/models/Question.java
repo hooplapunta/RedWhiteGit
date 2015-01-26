@@ -8,6 +8,8 @@ import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 import com.google.android.gms.maps.model.LatLng;
 
+import org.parceler.Parcel;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +17,10 @@ import java.util.Map;
 /**
  * Created by t-rochew on 12/15/2014.
  */
+@Parcel
 public class Question implements FirebaseNode{
+
+    String key;
 
     String action;
     String created_datetime;
@@ -34,123 +39,12 @@ public class Question implements FirebaseNode{
     QuestionLocation _location = new QuestionLocation();
     ArrayList<QuestionOption> _options = new ArrayList<QuestionOption>();
 
-    public class QuestionLocation {
-        ArrayList<LatLng> geofence = new ArrayList<LatLng>();
-        double lat;
-        double lng;
-        String name;
-        int proximity;
-        boolean trigger;
-
-        public ArrayList<LatLng> getGeofence() {
-            return geofence;
-        }
-
-        public void setGeofence(ArrayList<LatLng> geofence) {
-            this.geofence = geofence;
-        }
-
-        public double getLat() {
-            return lat;
-        }
-
-        public void setLat(double lat) {
-            this.lat = lat;
-        }
-
-        public double getLng() {
-            return lng;
-        }
-
-        public void setLng(double lng) {
-            this.lng = lng;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public int getProximity() {
-            return proximity;
-        }
-
-        public void setProximity(int proximity) {
-            this.proximity = proximity;
-        }
-
-        public boolean isTrigger() {
-            return trigger;
-        }
-
-        public void setTrigger(boolean trigger) {
-            this.trigger = trigger;
-        }
-
-        public QuestionLocation() {
-
-        }
-
-        public QuestionLocation(ArrayList<LatLng> geofence, double lat, double lng, String name, int proximity, boolean trigger) {
-            this.geofence = geofence;
-            this.lat = lat;
-            this.lng = lng;
-            this.name = name;
-            this.proximity = proximity;
-            this.trigger = trigger;
-        }
-
-        public QuestionLocation(String geofence, double lat, double lng, String name, int proximity, boolean trigger) {
-            String[] points = geofence.split(";");
-
-            this.geofence = new ArrayList<LatLng>();
-
-            for(String p: points)
-            {
-                String[] ll = p.split(",");
-
-                this.geofence.add(new LatLng(Double.parseDouble(ll[0]), Double.parseDouble(ll[1])));
-            }
-
-            this.lat = lat;
-            this.lng = lng;
-            this.name = name;
-            this.proximity = proximity;
-            this.trigger = trigger;
-        }
+    public String getKey() {
+        return key;
     }
 
-    public class QuestionOption {
-        String key;
-        ArrayList<QuestionAnswer> _answers;
-
-        public String getKey() {
-            return key;
-        }
-
-        public void setKey(String key) {
-            this.key = key;
-        }
-
-        public ArrayList<QuestionAnswer> get_answers() {
-            return _answers;
-        }
-
-        public void set_answers(ArrayList<QuestionAnswer> _answers) {
-            this._answers = _answers;
-        }
-
-        public QuestionOption() {
-
-        }
-
-        public QuestionOption(String key, ArrayList<QuestionAnswer> _answers) {
-            this.key = key;
-            this._answers = _answers;
-        }
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getAction() {
@@ -281,7 +175,8 @@ public class Question implements FirebaseNode{
         this.type = type;
     }
 
-    public Question(String action, String created_datetime, String created_username, String expiry_datetime, boolean expiry_status, String for_modifier, String image_url, String question, int responses, String type, String updated_datetime, int views, ArrayList<String> _for_communities, QuestionLocation _location, ArrayList<QuestionOption> _options) {
+    public Question(String key, String action, String created_datetime, String created_username, String expiry_datetime, boolean expiry_status, String for_modifier, String image_url, String question, int responses, String type, String updated_datetime, int views, ArrayList<String> _for_communities, QuestionLocation _location, ArrayList<QuestionOption> _options) {
+        this.key = key;
         this.action = action;
         this.created_datetime = created_datetime;
         this.created_username = created_username;
@@ -299,7 +194,8 @@ public class Question implements FirebaseNode{
         this._options = _options;
     }
 
-    public Question(String action, String created_datetime, String created_username, String expiry_datetime, boolean expiry_status, String for_modifier, String image_url, String question, int responses, String type, String updated_datetime, int views, Map<String, Object> _for_communities, Map<String, Object> _location, Map<String, Object>  _options) {
+    public Question(String key, String action, String created_datetime, String created_username, String expiry_datetime, boolean expiry_status, String for_modifier, String image_url, String question, int responses, String type, String updated_datetime, int views, Map<String, Object> _for_communities, Map<String, Object> _location, Map<String, Object>  _options) {
+        this.key = key;
         this.action = action;
         this.created_datetime = created_datetime;
         this.created_username = created_username;
@@ -359,9 +255,10 @@ public class Question implements FirebaseNode{
         }
     }
 
-    public static Question convertFromMap(Map<String, Object> map)
+    public static Question convertFromMap(String key, Map<String, Object> map)
     {
         return new Question(
+                key,
                 (String)map.get("action"),
                 (String)map.get("created_datetime"),
                 (String)map.get("created_username"),
@@ -386,7 +283,7 @@ public class Question implements FirebaseNode{
 
         for (Map.Entry<String, Object> e : map.entrySet()) {
             c.add(
-                    Question.convertFromMap((Map)e.getValue())
+                    Question.convertFromMap(e.getKey(), (Map)e.getValue())
             );
         }
 

@@ -9,6 +9,8 @@ import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
+import org.parceler.Parcel;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -17,6 +19,7 @@ import java.util.Map;
  * Created by Rong Kang on 1/13/2015.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Parcel
 public class User implements FirebaseNode{
 
     String key;

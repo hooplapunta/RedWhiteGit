@@ -5,12 +5,15 @@ import com.firebase.client.Firebase;
 import com.firebase.client.ServerValue;
 import com.firebase.client.ValueEventListener;
 
+import org.parceler.Parcel;
+
 import java.util.ArrayList;
 import java.util.Map;
 
 /**
  * Created by Rong Kang on 1/16/2015.
  */
+@Parcel
 public class QuestionAnswer implements FirebaseNode{
 
     String answered_username;

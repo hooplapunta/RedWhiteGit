@@ -70,7 +70,7 @@ public class QuestionDetailActivity extends Activity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                question = Question.convertFromMap((Map<String, Object>)dataSnapshot.getValue());
+                question = Question.convertFromMap("1",(Map<String, Object>)dataSnapshot.getValue());
 
 
 

@@ -2,6 +2,7 @@ package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -11,8 +12,22 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
+import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
+import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
+import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
+
+import java.util.ArrayList;
+import java.util.Map;
+
 import me.redwhite.redwhite.MainActivity;
 import me.redwhite.redwhite.R;
+import me.redwhite.redwhite.models.Community;
+import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.User;
+import me.redwhite.redwhite.utils.BaseFragment;
 import me.redwhite.redwhite.utils.CacheFragmentStatePagerAdapter;
 import me.redwhite.redwhite.utils.SlidingTabLayout;
 import me.redwhite.redwhite.utils.ViewPagerTabListViewFragment;
@@ -42,6 +57,8 @@ public class BrowseQuestionsListFragment extends Fragment {
 
     private ViewPager viewPager;
     private NavigationAdapter navigationAdapter;
+
+    ArrayList<Question> questionList = new ArrayList<Question>();
 
     /**
      * Use this factory method to create a new instance of
@@ -83,10 +100,6 @@ public class BrowseQuestionsListFragment extends Fragment {
         //return inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
 
         View v = inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
-
-
-
-
         return v;
     }
 
@@ -94,15 +107,95 @@ public class BrowseQuestionsListFragment extends Fragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        navigationAdapter = new NavigationAdapter(((FragmentActivity)getActivity()).getSupportFragmentManager());
-        viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
-        viewPager.setAdapter(navigationAdapter);
+        // views are ready for loading, wait for data before populating.
 
-        SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
-        slidingTabLayout.setCustomTabView(R.layout.tab_indicator, android.R.id.text1);
-        slidingTabLayout.setSelectedIndicatorColors(getResources().getColor(R.color.accent));
-        slidingTabLayout.setDistributeEvenly(true);
-        slidingTabLayout.setViewPager(viewPager);
+        final User u = new User();
+        u.setKey("BAA");
+        u.set_communities_joined(new ArrayList<String>());
+        u.get_communities_joined().add("sg");
+        u.get_communities_joined().add("nyp");
+
+        class RecommendedQuestionsTask extends AsyncTask<String, Boolean, ArrayList<Question>> {
+            @Override
+            protected void onPreExecute() {
+                // show the progress indicator
+            }
+
+            @Override
+            protected ArrayList<Question> doInBackground(String... communities) {
+                final ArrayList<Question> incoming = new ArrayList<Question>();
+
+                for(String communityKey: communities) {
+                    Community.findNodeByKey(communityKey, new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Community c = Community.convertFromMap((Map<String, Object>) dataSnapshot.getValue());
+
+                            for (final Community.QuestionStatus qs : c.get_questions()) {
+                                Question.findNodeByKey(qs.question, new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        Question q = Question.convertFromMap(qs.question, (Map<String, Object>) dataSnapshot.getValue());
+
+                                        boolean questionExists = false;
+                                        for(Question z : questionList)
+                                        {
+                                            if(z.getKey().equals(q.getKey()))
+                                            {
+                                                questionExists = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (!questionExists) {
+                                            questionList.add(q);
+                                        }
+
+                                        navigationAdapter = new NavigationAdapter(((FragmentActivity)getActivity()).getSupportFragmentManager(), questionList, u);
+                                        viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
+                                        viewPager.setAdapter(navigationAdapter);
+
+                                        SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
+                                        slidingTabLayout.setCustomTabView(R.layout.tab_indicator, android.R.id.text1);
+                                        slidingTabLayout.setSelectedIndicatorColors(getResources().getColor(R.color.accent));
+                                        slidingTabLayout.setDistributeEvenly(true);
+                                        slidingTabLayout.setViewPager(viewPager);
+                                    }
+
+                                    @Override
+                                    public void onCancelled(FirebaseError firebaseError) {
+
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(FirebaseError firebaseError) {
+
+                        }
+                    });
+                }
+
+                return incoming;
+            }
+
+            @Override
+            protected void onPostExecute(ArrayList<Question> list) {
+
+                // TODO: hide progress bar
+            }
+
+            @Override
+            protected void onProgressUpdate(Boolean... values) {
+                super.onProgressUpdate(values);
+            }
+        }
+
+
+
+        RecommendedQuestionsTask task = new RecommendedQuestionsTask();
+        task.execute(u.get_communities_joined().toArray(new String[]{}));
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -150,12 +243,30 @@ public class BrowseQuestionsListFragment extends Fragment {
      */
     private static class NavigationAdapter extends CacheFragmentStatePagerAdapter {
 
-        private static final String[] TITLES = new String[]{"Applepie", "Butter Cookie", "Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread", "Honeycomb", "Ice Cream Sandwich", "Jelly Bean", "KitKat", "Lollipop"};
+        private static String[] TITLES = new String[]{};
 
         private int mScrollY;
 
+        private ArrayList<Question> questions;
+
+        private User user;
+
         public NavigationAdapter(FragmentManager fm) {
             super(fm);
+        }
+
+        public NavigationAdapter(FragmentManager fm, ArrayList<Question> questions, User user) {
+            super(fm);
+            this.user = user;
+            this.questions = questions;
+
+            ArrayList<String> subtitles = new ArrayList<String>();
+            for(Question q : questions)
+            {
+                subtitles.add("#" + q.get_for_communities().get(0));
+            }
+
+            TITLES = subtitles.toArray(TITLES);
         }
 
         public void setScrollY(int scrollY) {
@@ -166,38 +277,13 @@ public class BrowseQuestionsListFragment extends Fragment {
         protected android.support.v4.app.Fragment createItem(int position) {
             // Initialize fragments.
             // Please be sure to pass scroll position to each fragments using setArguments.
-            android.support.v4.app.Fragment f;
-            final int pattern = position % 3;
-            switch (pattern) {
-                case 0: {
-                    f = new ViewPagerTabScrollViewFragment();
-                    if (0 <= mScrollY) {
-                        Bundle args = new Bundle();
-                        args.putInt(ViewPagerTabScrollViewFragment.ARG_SCROLL_Y, mScrollY);
-                        f.setArguments(args);
-                    }
-                    break;
-                }
-                case 1: {
-                    f = new ViewPagerTabListViewFragment();
-                    if (0 < mScrollY) {
-                        Bundle args = new Bundle();
-                        args.putInt(ViewPagerTabListViewFragment.ARG_INITIAL_POSITION, 1);
-                        f.setArguments(args);
-                    }
-                    break;
-                }
-                case 2:
-                default: {
-                    f = new ViewPagerTabRecyclerViewFragment();
-                    if (0 < mScrollY) {
-                        Bundle args = new Bundle();
-                        args.putInt(ViewPagerTabRecyclerViewFragment.ARG_INITIAL_POSITION, 1);
-                        f.setArguments(args);
-                    }
-                    break;
-                }
-            }
+
+            // retrieve the question
+            Question q = questions.get(position);
+
+            // assign new instance of fragment
+            android.support.v4.app.Fragment f = SingleQuestionFragment.newInstance(q, user);
+
             return f;
         }
 

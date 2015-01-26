@@ -19,6 +19,7 @@ import java.util.List;
 
 import me.redwhite.redwhite.R;
 import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.QuestionOption;
 
 /**
  * Created by t-rochew on 12/15/2014.
@@ -51,7 +52,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
             case "twooption":
 
                 // option 1 and option 2
-                Question.QuestionOption o1 = q.get_options().get(0);
+                QuestionOption o1 = q.get_options().get(0);
                 if (o1 != null) {
                     Button option1 = new Button(context);
                     option1.setText(o1.getKey());
@@ -63,7 +64,7 @@ public class QuestionsListAdapter extends ArrayAdapter<Question> {
                     layout.addView(option1);
                 }
 
-                Question.QuestionOption o2 = q.get_options().get(0);
+                QuestionOption o2 = q.get_options().get(0);
                 if (o1 != null) {
                     Button option2 = new Button(context);
                     option2.setText("No, I think we can do better than just questions.");

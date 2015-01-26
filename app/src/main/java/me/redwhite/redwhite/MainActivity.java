@@ -30,11 +30,12 @@ import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
 import me.redwhite.redwhite.fragments.NewsfeedFragment;
 import me.redwhite.redwhite.fragments.OldNewsfeedFragment;
 import me.redwhite.redwhite.fragments.QuestionDetailActivity;
+import me.redwhite.redwhite.fragments.SingleQuestionFragment;
 import me.redwhite.redwhite.models.User;
 
 
 public class MainActivity extends FragmentActivity
-        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener {
+        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener, SingleQuestionFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.

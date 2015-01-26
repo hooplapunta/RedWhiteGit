@@ -299,11 +299,11 @@ public class BrowseQuestionsFragment extends Fragment {
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             Community c = Community.convertFromMap((Map<String, Object>)dataSnapshot.getValue());
 
-                            for(Community.QuestionStatus qs : c.get_questions()) {
+                            for(final Community.QuestionStatus qs : c.get_questions()) {
                                 Question.findNodeByKey(qs.question, new ValueEventListener() {
                                     @Override
                                     public void onDataChange(DataSnapshot dataSnapshot) {
-                                        Question q = Question.convertFromMap((Map<String, Object>)dataSnapshot.getValue());
+                                        Question q = Question.convertFromMap(qs.question, (Map<String, Object>)dataSnapshot.getValue());
                                         adapter.add(q);
                                     }
 
