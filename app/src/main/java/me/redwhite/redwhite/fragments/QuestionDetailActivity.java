@@ -25,6 +25,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -39,14 +40,17 @@ import java.util.Map;
 import me.redwhite.redwhite.R;
 import me.redwhite.redwhite.SingleProfileActivity;
 import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.QuestionAnswer;
 
 
 public class QuestionDetailActivity extends Activity {
     TextView welcome;
     TextView questionTxt;
 
+
     private MapView mMapView;
     private GoogleMap gMap;
+
 
     FrameLayout frameLayout;
     LinearLayout layout;
@@ -54,6 +58,8 @@ public class QuestionDetailActivity extends Activity {
     private boolean listViewActive = true;
 
     Question question;
+
+
 
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
@@ -65,6 +71,8 @@ public class QuestionDetailActivity extends Activity {
             public void onDataChange(DataSnapshot dataSnapshot) {
 
                 question = Question.convertFromMap((Map<String, Object>)dataSnapshot.getValue());
+
+
 
                 frameLayout = (FrameLayout) findViewById(R.id.frameLayoutSingleQuestion);
 
@@ -114,13 +122,15 @@ public class QuestionDetailActivity extends Activity {
 
                 layout.addView(option3);
 
-                Button option2 = new Button(QuestionDetailActivity.this);
+                final Button option2 = new Button(QuestionDetailActivity.this);
                 option2.setText("No, I think we can do better than just questions.");
                 option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
                 option2.setTextColor(Color.BLACK);
                 option2.setElevation(2);
                 option2.setLayoutParams(buttonMargins);
                 layout.addView(option2);
+
+
 
 
                 //TODO: Junhong this is where you get the map ready and put in the heatmap
@@ -141,9 +151,15 @@ public class QuestionDetailActivity extends Activity {
                     @Override
                     public void onMapReady(GoogleMap googleMap) {
                         gMap = googleMap;
-                        LatLng singpaore = new LatLng(1.3, 103.8);
+                        LatLng singapore = new LatLng(1.3, 103.8);
 
                         googleMap.setMyLocationEnabled(true);
+
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(singapore).zoom(10).build();
+                        googleMap.animateCamera(CameraUpdateFactory
+                                .newCameraPosition(cameraPosition));
+
 
                         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                             @Override
@@ -174,6 +190,96 @@ public class QuestionDetailActivity extends Activity {
                                 .title("Did you find this MRT station to be crowded?")
                                 .snippet("asked by SMRT")
                                 .position(new LatLng(1.381, 103.844)));
+
+                        List<LatLng> redList = new ArrayList<LatLng>();
+
+
+                        ArrayList<QuestionAnswer> qaList = question.get_options().get(0).get_answers();
+                        final int option1 = qaList.size();
+
+                        //get an array list of responses that used (0) question option
+                        for (QuestionAnswer qa : qaList)
+                        {
+                            double lat = qa.getLat();
+                            double lng = qa.getLng();
+
+                            redList.add(new LatLng(lat,lng));
+                        }
+
+                        //TODO: Loop through question.getQuestionOptions().get(1).getQuestionAnswers() arraylist
+//                        redList.add(new LatLng(1.381, 103.844));
+//                        redList.add(new LatLng(1.379, 103.841));
+//                        redList.add(new LatLng(1.382, 103.845));
+//                        redList.add(new LatLng(1.384, 103.840));
+
+                        // Create the gradient.
+                        int[] colors = {
+                                Color.parseColor("#f44336")   // red
+                        };
+                        float[] startPoints = {
+                                0.2f
+                        };
+                        Gradient redgradient = new Gradient(colors, startPoints);
+
+                        // Create a heat map tile provider, passing it the latlngs of the police stations.
+                        HeatmapTileProvider mProvider = new HeatmapTileProvider.Builder()
+                                .data(redList)
+                                .gradient(redgradient)
+                                .build();
+                        // Add a tile overlay to the map, using the heat map tile provider.
+                        mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+
+
+
+
+                        //TODO: Loop through question.getQuestionOptions().get(2).getQuestionAnswers() arraylist
+                        List<LatLng> whitelist = new ArrayList<LatLng>();
+
+                        ArrayList<QuestionAnswer> qaList2 = question.get_options().get(1).get_answers();
+                        //get an array list of responses that used (0) question option
+                        final int option2 = qaList2.size();
+                        for (QuestionAnswer qa2 : qaList2)
+                        {
+                            double lat = qa2.getLat();
+                            double lng = qa2.getLng();
+
+                            whitelist.add(new LatLng(lat, lng));
+                        }
+
+
+
+                        // Create the gradient.
+                        int[] wcolors = {
+                                Color.parseColor("#cfd8dc")   // red
+                        };
+                        float[] wstartPoints = {
+                                0.2f
+                        };
+                        Gradient wgradient = new Gradient(wcolors, wstartPoints);
+
+                        // Create a heat map tile provider, passing it the latlngs of the police stations.
+                        HeatmapTileProvider whiteProvider = new HeatmapTileProvider.Builder()
+                                .data(whitelist)
+                                .gradient(wgradient)
+                                .build();
+                        // Add a tile overlay to the map, using the heat map tile provider.
+                        mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
+
+//                        TextView tvoption2 = new TextView(QuestionDetailActivity.this);
+//                        tvoption2.setText(option2);
+
+                        TextView tvoption1 = new TextView(getApplicationContext());
+                        tvoption1.setText(Integer.toString(option1)+ Integer.toString(option2));
+                        LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                        buttonMargins.setMargins(0, 16, 0, 16);
+                        tvoption1.setLayoutParams(buttonMargins);
+
+                        frameLayout.addView(tvoption1);
+                        frameLayout.bringChildToFront(tvoption1);
+
+
+
+
                     }
                 });
 
@@ -218,57 +324,6 @@ public class QuestionDetailActivity extends Activity {
 
         if (id == R.id.action_showAnswers)
         {
-            List<LatLng> redlist = new ArrayList<LatLng>();
-
-            //TODO: Loop through question.getQuestionOptions().get(1).getQuestionAnswers() arraylist
-            redlist.add(new LatLng(1.381, 103.844));
-            redlist.add(new LatLng(1.379, 103.841));
-            redlist.add(new LatLng(1.382, 103.845));
-            redlist.add(new LatLng(1.384, 103.840));
-
-            // Create the gradient.
-            int[] colors = {
-                    Color.parseColor("#f44336")   // red
-            };
-            float[] startPoints = {
-                    0.2f
-            };
-            Gradient redgradient = new Gradient(colors, startPoints);
-
-            // Create a heat map tile provider, passing it the latlngs of the police stations.
-            HeatmapTileProvider mProvider = new HeatmapTileProvider.Builder()
-                    .data(redlist)
-                    .gradient(redgradient)
-                    .build();
-            // Add a tile overlay to the map, using the heat map tile provider.
-            mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
-
-
-            List<LatLng> whitelist = new ArrayList<LatLng>();;
-
-            //TODO: Loop through question.getQuestionOptions().get(2).getQuestionAnswers() arraylist
-            whitelist.add(new LatLng(1.380, 103.842));
-            whitelist.add(new LatLng(1.381, 103.843));
-            whitelist.add(new LatLng(1.378, 103.848));
-            whitelist.add(new LatLng(1.379, 103.839));
-
-            // Create the gradient.
-            int[] wcolors = {
-                    Color.parseColor("#cfd8dc")   // red
-            };
-            float[] wstartPoints = {
-                    0.2f
-            };
-            Gradient wgradient = new Gradient(wcolors, wstartPoints);
-
-            // Create a heat map tile provider, passing it the latlngs of the police stations.
-            HeatmapTileProvider whiteProvider = new HeatmapTileProvider.Builder()
-                    .data(whitelist)
-                    .gradient(wgradient)
-                    .build();
-            // Add a tile overlay to the map, using the heat map tile provider.
-            mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
-
 
             // swap the display over
             if(listViewActive){
@@ -315,7 +370,7 @@ public class QuestionDetailActivity extends Activity {
 
                     }
                 });
-                frameLayout.startAnimation(animation);
+               frameLayout.startAnimation(animation);
                 item.setTitle("Show Answers");
             }
 
