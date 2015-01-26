@@ -214,10 +214,11 @@ public class QuestionDetailActivity extends Activity {
 
                         // Create the gradient.
                         int[] colors = {
+                                Color.parseColor("#ffcdd2"),
                                 Color.parseColor("#f44336")   // red
                         };
                         float[] startPoints = {
-                                0.2f
+                                0.2f, 1f
                         };
                         Gradient redgradient = new Gradient(colors, startPoints);
 
@@ -250,10 +251,11 @@ public class QuestionDetailActivity extends Activity {
 
                         // Create the gradient.
                         int[] wcolors = {
-                                Color.parseColor("#cfd8dc")   // red
+                                Color.parseColor("#ddbefb"),
+                                Color.parseColor("#2196f3")   // blue
                         };
                         float[] wstartPoints = {
-                                0.2f
+                                0.2f, 1f
                         };
                         Gradient wgradient = new Gradient(wcolors, wstartPoints);
 
