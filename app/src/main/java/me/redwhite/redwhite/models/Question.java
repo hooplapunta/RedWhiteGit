@@ -1,6 +1,7 @@
 package me.redwhite.redwhite.models;
 
 import android.location.Location;
+import android.util.Log;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
@@ -246,6 +247,7 @@ public class Question implements FirebaseNode{
 
                     Map<String, Object> answers = (Map<String, Object>)e.getValue();
                     for(Map.Entry<String, Object> x: answers.entrySet()) {
+                        Log.println(Log.INFO, "incoming question ans: ", x.toString());
                         qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
                     }
 

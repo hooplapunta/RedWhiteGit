@@ -91,16 +91,18 @@ public class MainActivity extends FragmentActivity
         //TODO: Check for saved user in shared preferences key?
         if(User.wasLoggedIn())
         {
+            // reload from sharedprefs
+
             loadActivityOnAuth();
             Toast.makeText(getApplicationContext(), User.getAuth().toString(), Toast.LENGTH_LONG).show();
 
         } else {
             // TODO: reload username and password from shared preference
-            User.loginToFirebase("test@hotmail.com", "testing", new Firebase.AuthResultHandler() {
+            User.loginToFirebase("ron@hotmail.com", "password", new Firebase.AuthResultHandler() {
                 @Override
                 public void onAuthenticated(AuthData authData) {
 
-                    User.findNodeByKey("BAM", new ValueEventListener() {
+                    User.findNodeByKey("RON", new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
