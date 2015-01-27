@@ -31,6 +31,8 @@ import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import me.redwhite.redwhite.fragments.BrowseQuestionsListFragment;
+
 /**
  * To be used with ViewPager to provide a tab indicator component which give constant feedback as to
  * the user's scroll progress.
@@ -76,6 +78,8 @@ public class SlidingTabLayout extends HorizontalScrollView {
     private ViewPager.OnPageChangeListener mViewPagerPageChangeListener;
 
     private final SlidingTabStrip mTabStrip;
+
+    private BrowseQuestionsListFragment callbackFragment;
 
     public SlidingTabLayout(Context context) {
         this(context, null);
@@ -302,6 +306,11 @@ public class SlidingTabLayout extends HorizontalScrollView {
             if (mViewPagerPageChangeListener != null) {
                 mViewPagerPageChangeListener.onPageSelected(position);
             }
+
+            //custom implementation
+            if (callbackFragment != null) {
+                callbackFragment.pagerUpdate(position);
+            }
         }
 
     }
@@ -318,4 +327,8 @@ public class SlidingTabLayout extends HorizontalScrollView {
         }
     }
 
+    // custom implementation
+    public void attachFragment(BrowseQuestionsListFragment fragment) {
+        callbackFragment = fragment;
+    }
 }

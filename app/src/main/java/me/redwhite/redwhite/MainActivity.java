@@ -62,12 +62,12 @@ public class MainActivity extends FragmentActivity
         // Ready Firebase
         Firebase.setAndroidContext(this);
 
-        // Check for a logged in user
-        loadLoggedInUser();
-
         mNavigationDrawerFragment = (NavigationDrawerFragment)
                 getFragmentManager().findFragmentById(R.id.navigation_drawer);
         mTitle = getTitle();
+
+        // Check for a logged in user
+        loadLoggedInUser();
 
         // loadLoggedInUser handles the rest of the loading of the activity
     }
@@ -89,14 +89,18 @@ public class MainActivity extends FragmentActivity
     private void loadLoggedInUser() {
 
         //TODO: Check for saved user in shared preferences key?
-        if(true)
+        if(User.wasLoggedIn())
         {
+            loadActivityOnAuth();
+            Toast.makeText(getApplicationContext(), User.getAuth().toString(), Toast.LENGTH_LONG).show();
+
+        } else {
             // TODO: reload username and password from shared preference
             User.loginToFirebase("test@hotmail.com", "testing", new Firebase.AuthResultHandler() {
                 @Override
                 public void onAuthenticated(AuthData authData) {
 
-                    User.findNodeByKey("BAA", new ValueEventListener() {
+                    User.findNodeByKey("BAM", new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 

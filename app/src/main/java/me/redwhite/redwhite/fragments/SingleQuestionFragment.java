@@ -26,6 +26,8 @@ import com.squareup.picasso.Picasso;
 import org.parceler.Parcels;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import me.redwhite.redwhite.R;
@@ -97,8 +99,8 @@ public class SingleQuestionFragment extends Fragment {
         LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
         buttonMargins.setMargins(0, 16, 0, 16);
 
-        LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,120);
-        narrowButtonMargins.setMargins(0, 16, 0, 16);
+        LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,110);
+        narrowButtonMargins.setMargins(0, 12, 0, 12);
 
         TextView tvUser = (TextView) layout.findViewById(R.id.tvUsername);
         tvUser.setText(user.getKey() +" asked:");
@@ -206,6 +208,14 @@ public class SingleQuestionFragment extends Fragment {
 
                 LinearLayout.LayoutParams labels = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
                 labels.setMargins(0, 16, 0, 16);
+
+                //sort options before putting in:
+                Collections.sort(question.get_options(), new Comparator<QuestionOption>() {
+                    @Override
+                    public int compare(QuestionOption p1, QuestionOption p2) {
+                        return p1.getKey().charAt(0) - p2.getKey().charAt(0); // Ascending
+                    }
+                });
 
                 TextView tv1 = new TextView(getActivity());
                 tv1.setText(question.get_options().get(0).getKey());

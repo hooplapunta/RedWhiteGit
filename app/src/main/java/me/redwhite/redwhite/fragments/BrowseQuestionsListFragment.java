@@ -1,6 +1,8 @@
 package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
+import android.graphics.Color;
+import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,6 +13,10 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
@@ -18,8 +24,20 @@ import com.firebase.client.ValueEventListener;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
 import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
 import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlayOptions;
+import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import me.redwhite.redwhite.MainActivity;
@@ -59,6 +77,9 @@ public class BrowseQuestionsListFragment extends Fragment {
     private NavigationAdapter navigationAdapter;
 
     ArrayList<Question> questionList = new ArrayList<Question>();
+
+    private MapView mMapView;
+    private GoogleMap gMap;
 
     /**
      * Use this factory method to create a new instance of
@@ -100,6 +121,77 @@ public class BrowseQuestionsListFragment extends Fragment {
         //return inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
 
         View v = inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
+
+        mMapView = (MapView) v.findViewById(R.id.mapView);
+        mMapView.onCreate(savedInstanceState);
+
+        mMapView.onResume();// needed to get the map to display immediately
+
+        try {
+            MapsInitializer.initialize(getActivity().getApplicationContext());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        mMapView.getMapAsync(new OnMapReadyCallback() {
+            @Override
+            public void onMapReady(GoogleMap googleMap) {
+                gMap = googleMap;
+                LatLng singapore = new LatLng(1.3, 103.8);
+                LatLng offset = new LatLng(1.55, 103.8);
+                googleMap.setMyLocationEnabled(true);
+
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(offset).zoom(10).build();
+
+                googleMap.animateCamera(CameraUpdateFactory
+                        .newCameraPosition(cameraPosition));
+
+                googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+                    @Override
+                    public void onInfoWindowClick(Marker marker) {
+
+                        FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
+                        final LinearLayout question = (LinearLayout) frameLayout.findViewById(R.id.linearLayoutCard);
+
+                        TextView questionText = (TextView) question.findViewById(R.id.tvQuestionText);
+                        questionText.setText(marker.getTitle());
+
+                        LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                        buttonMargins.setMargins(0, 16, 0, 16);
+
+                        Button option1 = new Button(getActivity());
+                        option1.setText("Yes, questions are awesome!");
+                        option1.setBackgroundColor(Color.parseColor("#F44336"));
+                        option1.setTextColor(Color.WHITE);
+                        option1.setElevation(2);
+                        option1.setLayoutParams(buttonMargins);
+
+                        option1.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+
+
+                            }
+                        });
+
+                        question.addView(option1);
+
+                        Button option2 = new Button(getActivity());
+                        option2.setText("No, I think we can do better than just questions.");
+                        option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
+                        option2.setTextColor(Color.BLACK);
+                        option2.setElevation(2);
+                        option2.setLayoutParams(buttonMargins);
+                        question.addView(option2);
+
+                        View tempFrom = frameLayout.getChildAt(0);
+                        frameLayout.bringChildToFront(tempFrom);
+                    }
+                });
+            }
+        });
+
         return v;
     }
 
@@ -114,6 +206,8 @@ public class BrowseQuestionsListFragment extends Fragment {
         u.set_communities_joined(new ArrayList<String>());
         u.get_communities_joined().add("sg");
         u.get_communities_joined().add("nyp");
+
+        questionList = new ArrayList<Question>();
 
         class RecommendedQuestionsTask extends AsyncTask<String, Boolean, ArrayList<Question>> {
             @Override
@@ -148,18 +242,37 @@ public class BrowseQuestionsListFragment extends Fragment {
                                         }
 
                                         if (!questionExists) {
+                                            //bughack recovery
+                                            if(questionList.size() == 2 && (questionList.get(0) == questionList.get(1)))
+                                            {
+                                                questionList.remove(0);
+                                            }
+
                                             questionList.add(q);
+
+                                            //bughack to prevent crashing when reloading for this second time
+                                            if(questionList.size() == 1)
+                                            {
+                                                questionList.add(q);
+                                            }
+
+                                            gMap.addMarker(new MarkerOptions()
+                                                    .title(q.getQuestion())
+                                                    .snippet("asked by " +q.getCreated_username())
+                                                    .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
                                         }
 
                                         navigationAdapter = new NavigationAdapter(((FragmentActivity)getActivity()).getSupportFragmentManager(), questionList, u);
                                         viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
                                         viewPager.setAdapter(navigationAdapter);
 
-                                        SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
+                                        final SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
                                         slidingTabLayout.setCustomTabView(R.layout.tab_indicator, android.R.id.text1);
                                         slidingTabLayout.setSelectedIndicatorColors(getResources().getColor(R.color.accent));
                                         slidingTabLayout.setDistributeEvenly(true);
                                         slidingTabLayout.setViewPager(viewPager);
+
+                                        slidingTabLayout.attachFragment(BrowseQuestionsListFragment.this);
                                     }
 
                                     @Override
@@ -192,10 +305,9 @@ public class BrowseQuestionsListFragment extends Fragment {
             }
         }
 
-
-
         RecommendedQuestionsTask task = new RecommendedQuestionsTask();
         task.execute(u.get_communities_joined().toArray(new String[]{}));
+
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -220,6 +332,21 @@ public class BrowseQuestionsListFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    public void pagerUpdate(int position) {
+
+        if (questionList != null) {
+            Question q = questionList.get(position);
+
+            if (q != null) {
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(new LatLng(q.get_location().getLat() + 0.015, q.get_location().getLng())).zoom(14).build();
+
+                gMap.animateCamera(CameraUpdateFactory
+                        .newCameraPosition(cameraPosition));
+            }
+        }
     }
 
     /**
@@ -279,12 +406,24 @@ public class BrowseQuestionsListFragment extends Fragment {
             // Please be sure to pass scroll position to each fragments using setArguments.
 
             // retrieve the question
+
             Question q = questions.get(position);
 
-            // assign new instance of fragment
-            android.support.v4.app.Fragment f = SingleQuestionFragment.newInstance(q, user);
+            if (position < questions.size())
+            {
+                questions.get(position);
+            }
+
+            android.support.v4.app.Fragment f;
+
+            if (true)
+            {
+                f = SingleQuestionFragment.newInstance(q, user);
+            }
 
             return f;
+            // assign new instance of fragment
+
         }
 
         @Override

@@ -206,6 +206,8 @@ public class User implements FirebaseNode{
         return c;
     }
 
+
+
     public static void loginToFirebase(String email, String password, Firebase.AuthResultHandler handler) {
         Firebase ref = new Firebase(FIREBASEPATH);
         ref.authWithPassword(email, password, handler);
@@ -214,5 +216,21 @@ public class User implements FirebaseNode{
     public static void createUserFirebase(String email, String password, Firebase.ResultHandler handler) {
         Firebase ref = new Firebase(FIREBASEPATH);
         ref.createUser(email, password, handler);
+    }
+
+    public static AuthData getAuth() {
+        Firebase ref = new Firebase(FIREBASEPATH);
+        return ref.getAuth();
+    }
+
+    public static boolean wasLoggedIn() {
+        boolean loggedIn = false;
+
+        if (getAuth() != null)
+        {
+            loggedIn = true;
+        }
+
+        return loggedIn;
     }
 }

@@ -5,6 +5,12 @@
     android:layout_height="match_parent"
     tools:context="me.redwhite.redwhite.fragments.BrowseQuestionsListFragment">
 
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="0dp"/>
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
