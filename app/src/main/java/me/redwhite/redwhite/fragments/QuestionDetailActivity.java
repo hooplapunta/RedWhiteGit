@@ -47,6 +47,8 @@ public class QuestionDetailActivity extends Activity {
     TextView welcome;
     TextView questionTxt;
 
+    TextView tvOption1;
+    TextView tvOption2;
 
     private MapView mMapView;
     private GoogleMap gMap;
@@ -66,13 +68,19 @@ public class QuestionDetailActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question_detail);
 
+
+
         Question.findNodeByKey("1", new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
+
+
                 question = Question.convertFromMap("1",(Map<String, Object>)dataSnapshot.getValue());
 
 
+                tvOption1 = (TextView)findViewById(R.id.tvOption1);
+                tvOption2 = (TextView)findViewById(R.id.tvOption2);
 
                 frameLayout = (FrameLayout) findViewById(R.id.frameLayoutSingleQuestion);
 
@@ -161,6 +169,8 @@ public class QuestionDetailActivity extends Activity {
                                 .newCameraPosition(cameraPosition));
 
 
+
+
                         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                             @Override
                             public void onInfoWindowClick(Marker marker) {
@@ -200,8 +210,8 @@ public class QuestionDetailActivity extends Activity {
                         //get an array list of responses that used (0) question option
                         for (QuestionAnswer qa : qaList)
                         {
-                            double lat = qa.getLat();
-                            double lng = qa.getLng();
+                            final double lat = qa.getLat();
+                            final double lng = qa.getLng();
 
                             redList.add(new LatLng(lat,lng));
                         }
@@ -229,6 +239,8 @@ public class QuestionDetailActivity extends Activity {
                                 .build();
                         // Add a tile overlay to the map, using the heat map tile provider.
                         mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
+
+
 
 
 
@@ -267,20 +279,12 @@ public class QuestionDetailActivity extends Activity {
                         // Add a tile overlay to the map, using the heat map tile provider.
                         mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
 
-//                        TextView tvoption2 = new TextView(QuestionDetailActivity.this);
-//                        tvoption2.setText(option2);
-
-                        TextView tvoption1 = new TextView(getApplicationContext());
-                        tvoption1.setText(Integer.toString(option1)+ Integer.toString(option2));
-                        LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                        buttonMargins.setMargins(0, 16, 0, 16);
-                        tvoption1.setLayoutParams(buttonMargins);
-
-                        frameLayout.addView(tvoption1);
-                        frameLayout.bringChildToFront(tvoption1);
+                        tvOption1.setText(Integer.toString(option1));
+                        tvOption2.setText(Integer.toString(option2));
 
 
 
+                        FrameLayout container = (FrameLayout) findViewById(R.id.analysisContainer);
 
                     }
                 });
@@ -326,7 +330,6 @@ public class QuestionDetailActivity extends Activity {
 
         if (id == R.id.action_showAnswers)
         {
-
             // swap the display over
             if(listViewActive){
                 Animation animation = new AlphaAnimation(1.0f, 0.0f);
@@ -372,7 +375,8 @@ public class QuestionDetailActivity extends Activity {
 
                     }
                 });
-               frameLayout.startAnimation(animation);
+
+                frameLayout.startAnimation(animation);
                 item.setTitle("Show Answers");
             }
 
