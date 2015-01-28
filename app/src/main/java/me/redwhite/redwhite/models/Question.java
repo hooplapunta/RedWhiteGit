@@ -245,10 +245,13 @@ public class Question implements FirebaseNode{
                     qo.setKey(e.getKey());
                     qo.set_answers(new ArrayList<QuestionAnswer>());
 
-                    Map<String, Object> answers = (Map<String, Object>)e.getValue();
-                    for(Map.Entry<String, Object> x: answers.entrySet()) {
-                        Log.println(Log.INFO, "incoming question ans: ", x.toString());
-                        qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
+                    if (!(e.getValue() instanceof Boolean)) {
+                        Map<String, Object> answers = (Map<String, Object>)e.getValue();
+
+                        for(Map.Entry<String, Object> x: answers.entrySet()) {
+                            Log.println(Log.INFO, "incoming question ans for QID " +key +" Opt " +qo.getKey(), x.toString());
+                            qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
+                        }
                     }
 
                     this._options.add(qo);

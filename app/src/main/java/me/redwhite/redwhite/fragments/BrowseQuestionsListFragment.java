@@ -11,11 +11,17 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
@@ -81,6 +87,8 @@ public class BrowseQuestionsListFragment extends Fragment {
     private MapView mMapView;
     private GoogleMap gMap;
 
+    private boolean listViewActive;
+
     /**
      * Use this factory method to create a new instance of
      * this fragment using the provided parameters.
@@ -110,6 +118,9 @@ public class BrowseQuestionsListFragment extends Fragment {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
+
+        // Allow access to the ActionBar
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -414,12 +425,7 @@ public class BrowseQuestionsListFragment extends Fragment {
                 questions.get(position);
             }
 
-            android.support.v4.app.Fragment f;
-
-            if (true)
-            {
-                f = SingleQuestionFragment.newInstance(q, user);
-            }
+            android.support.v4.app.Fragment f = SingleQuestionFragment.newInstance(q, user);
 
             return f;
             // assign new instance of fragment
@@ -437,4 +443,75 @@ public class BrowseQuestionsListFragment extends Fragment {
         }
     }
 
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_browse_questions, menu);
+
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        if (item.getItemId() == R.id.menuShowNearby) {
+
+            final FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
+            ListView listViewQuestions = (ListView) getActivity().findViewById(R.id.listViewQuestions);
+
+            if(listViewActive){
+                Animation animation = new AlphaAnimation(1.0f, 0.0f);
+                animation.setFillAfter(true);
+                animation.setDuration(350);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        View tempFrom = frameLayout.getChildAt(1);
+                        frameLayout.bringChildToFront(tempFrom);
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                listViewQuestions.startAnimation(animation);
+                item.setTitle("Show All");
+            } else {
+                Animation animation = new AlphaAnimation(0.0f, 1.0f);
+                animation.setFillAfter(true);
+                animation.setDuration(350);
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+                        View tempFrom = frameLayout.getChildAt(1);
+                        frameLayout.bringChildToFront(tempFrom);
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+                listViewQuestions.startAnimation(animation);
+                item.setTitle("Show Nearby");
+            }
+
+            listViewActive = !listViewActive;
+
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
 }
