@@ -29,13 +29,14 @@ import me.redwhite.redwhite.fragments.BrowseQuestionsListFragment;
 import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
 import me.redwhite.redwhite.fragments.NewsfeedFragment;
 import me.redwhite.redwhite.fragments.OldNewsfeedFragment;
+import me.redwhite.redwhite.fragments.QuestDetailFragment;
 import me.redwhite.redwhite.fragments.QuestionDetailActivity;
 import me.redwhite.redwhite.fragments.SingleQuestionFragment;
 import me.redwhite.redwhite.models.User;
 
 
 public class MainActivity extends FragmentActivity
-        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener, SingleQuestionFragment.OnFragmentInteractionListener {
+        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener, SingleQuestionFragment.OnFragmentInteractionListener, QuestDetailFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -158,14 +159,14 @@ public class MainActivity extends FragmentActivity
                 nextFragment = NewsfeedFragment.newInstance(null, null);
                 break;
             case 1:
-                nextFragment = BrowseQuestionsFragment.newInstance(null, null);
+                nextFragment = BrowseQuestionsListFragment.newInstance(null, null);
                 break;
             case 2:
                 nextFragment = BrowseCommunityFragment.newInstance(null, null);
                 break;
             case 3:
                 //TODO: Update
-                nextFragment = BrowseQuestionsListFragment.newInstance(null, null);
+                nextFragment = QuestDetailFragment.newInstance(null, null);
                 break;
             case 4:
                 nextFragment = OldNewsfeedFragment.newInstance(null, null);

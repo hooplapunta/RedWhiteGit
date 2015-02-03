@@ -16,6 +16,7 @@
 
 package me.redwhite.redwhite.utils;
 
+import android.app.Fragment;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.support.v4.view.PagerAdapter;
@@ -32,6 +33,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import me.redwhite.redwhite.fragments.BrowseQuestionsListFragment;
+import me.redwhite.redwhite.fragments.QuestDetailFragment;
 
 /**
  * To be used with ViewPager to provide a tab indicator component which give constant feedback as to
@@ -79,7 +81,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
     private final SlidingTabStrip mTabStrip;
 
-    private BrowseQuestionsListFragment callbackFragment;
+    private Fragment callbackFragment;
 
     public SlidingTabLayout(Context context) {
         this(context, null);
@@ -309,7 +311,18 @@ public class SlidingTabLayout extends HorizontalScrollView {
 
             //custom implementation
             if (callbackFragment != null) {
-                callbackFragment.pagerUpdate(position);
+
+                if(callbackFragment instanceof BrowseQuestionsListFragment)
+                {
+                    ((BrowseQuestionsListFragment)callbackFragment).pagerUpdate(position);
+                }
+
+                if(callbackFragment instanceof QuestDetailFragment)
+                {
+                    ((QuestDetailFragment)callbackFragment).pagerUpdate(position);
+                }
+
+
             }
         }
 
@@ -328,7 +341,7 @@ public class SlidingTabLayout extends HorizontalScrollView {
     }
 
     // custom implementation
-    public void attachFragment(BrowseQuestionsListFragment fragment) {
+    public void attachFragment(Fragment fragment) {
         callbackFragment = fragment;
     }
 }

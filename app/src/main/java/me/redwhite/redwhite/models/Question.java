@@ -224,6 +224,7 @@ public class Question implements FirebaseNode{
         }
 
         if (_location != null) {
+
             this._location = new QuestionLocation(
                     (String) _location.get("geofence"),
                     (double) _location.get("lat"),
@@ -249,7 +250,7 @@ public class Question implements FirebaseNode{
                         Map<String, Object> answers = (Map<String, Object>)e.getValue();
 
                         for(Map.Entry<String, Object> x: answers.entrySet()) {
-                            Log.println(Log.INFO, "incoming question ans for QID " +key +" Opt " +qo.getKey(), x.toString());
+                            Log.println(Log.INFO, "incoming answer for QID " +key +" Opt " +qo.getKey(), x.toString());
                             qo.get_answers().add(QuestionAnswer.convertFromMap((HashMap<String, Object>) x.getValue()));
                         }
                     }
@@ -262,6 +263,8 @@ public class Question implements FirebaseNode{
 
     public static Question convertFromMap(String key, Map<String, Object> map)
     {
+        //Log.println(Log.INFO, "Converting question" +key +": ", map.toString());
+
         return new Question(
                 key,
                 (String)map.get("action"),

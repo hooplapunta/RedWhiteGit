@@ -2,22 +2,44 @@ package me.redwhite.redwhite.fragments;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.LayerDrawable;
+import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RatingBar;
+import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.android.Utils;
+import com.cloudinary.utils.ObjectUtils;
+import com.firebase.client.Firebase;
+import com.firebase.client.ServerValue;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
@@ -25,14 +47,26 @@ import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import me.redwhite.redwhite.R;
 import me.redwhite.redwhite.SingleProfileActivity;
 import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.QuestionAnswer;
 import me.redwhite.redwhite.models.QuestionOption;
 import me.redwhite.redwhite.models.User;
 
@@ -44,7 +78,8 @@ import me.redwhite.redwhite.models.User;
  * Use the {@link SingleQuestionFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class SingleQuestionFragment extends Fragment {
+public class SingleQuestionFragment extends Fragment
+        implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -55,6 +90,11 @@ public class SingleQuestionFragment extends Fragment {
     private User user;
 
     private OnFragmentInteractionListener mListener;
+    private GoogleApiClient mGoogleApiClient;
+    private Location mLastLocation;
+
+    private int cameraButtonId;
+    private String mCurrentPhotoPath;
 
     /**
      * Use this factory method to create a new instance of
@@ -88,6 +128,7 @@ public class SingleQuestionFragment extends Fragment {
             question = Parcels.unwrap(getArguments().getParcelable("question"));
             user = Parcels.unwrap(getArguments().getParcelable("user"));
         }
+        buildGoogleApiClient();
     }
 
     @Override
@@ -99,7 +140,7 @@ public class SingleQuestionFragment extends Fragment {
         LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
         buttonMargins.setMargins(0, 16, 0, 16);
 
-        LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,110);
+        final LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,110);
         narrowButtonMargins.setMargins(0, 12, 0, 12);
 
         TextView tvUser = (TextView) layout.findViewById(R.id.tvUsername);
@@ -128,29 +169,75 @@ public class SingleQuestionFragment extends Fragment {
                     option1.setTextColor(Color.WHITE);
                     option1.setElevation(2);
                     option1.setLayoutParams(buttonMargins);
-
+                    layout.addView(option1);
                     option1.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            layout.removeView(option2);
+                            if (mLastLocation != null) {
+                                // setup question answer to send
+                                QuestionAnswer qa = new QuestionAnswer(
+                                        user.getKey(),
+                                        mLastLocation.getLatitude(),
+                                        mLastLocation.getLongitude(),
+                                        "...",
+                                        question.getQuestion(),
+                                        question.get_options().get(0).getKey(),
+                                        System.currentTimeMillis()/1000,
+                                        question.getKey()
+                                        );
 
-                            LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                            tvMargins.setMargins(0, 24, 0, 16);
+                                QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(0).getKey(), qa);
+                                Toast.makeText(getActivity(), "Your response was sent.", Toast.LENGTH_SHORT).show();
 
-                            TextView yourtv = new TextView(getActivity());
-                            yourtv.setTextColor(Color.parseColor("#2196f3"));
-                            yourtv.setText("Thanks for your feedback. Click to find out how SMRT is improving your daily ride on train services in Singapore every day.");
-                            yourtv.setLayoutParams(tvMargins);
-                            layout.addView(yourtv);
+                                // disable current button
+                                // display show answer button
+                                layout.removeView(option2);
+                                option1.setEnabled(false);
+
+                                Button button = new Button(getActivity());
+                                button.setText("Show Community Answers");
+                                button.setBackgroundColor(Color.parseColor("#2196f3"));
+                                button.setTextColor(Color.WHITE);
+                                button.setTextSize(12f);
+                                button.setElevation(2);
+                                button.setPadding(0, 2, 0, 2);
+                                button.setLayoutParams(narrowButtonMargins);
+                                button.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                                        myIntent.putExtra("username", user.getKey());
+                                        myIntent.putExtra("question", question.getKey());
+                                        startActivity(myIntent);
+                                    }
+                                });
+
+                                layout.addView(button);
+
+                                // send intent to question detail with new button
+                                // abstract to standard method
+
+                            } else {
+                                Toast.makeText(getActivity(), "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+                            }
+
+                                // previous followup action code
+//                            LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+//                            tvMargins.setMargins(0, 24, 0, 16);
+//
+//                            TextView yourtv = new TextView(getActivity());
+//                            yourtv.setTextColor(Color.parseColor("#2196f3"));
+//                            yourtv.setText("Thanks for your feedback. Click to find out how SMRT is improving your daily ride on train services in Singapore every day.");
+//                            yourtv.setLayoutParams(tvMargins);
+//                            layout.addView(yourtv);
 
                         }
                     });
 
-                    layout.addView(option1);
                 }
 
                 QuestionOption o2 = question.get_options().get(1);
-                if (o1 != null) {
+                if (o2 != null) {
                     option2.setText(o2.getKey());
                     option2.setBackgroundColor(Color.parseColor("#42A5F5"));
                     option2.setTextColor(Color.WHITE);
@@ -161,54 +248,169 @@ public class SingleQuestionFragment extends Fragment {
                     option2.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            layout.removeView(option1);
 
-                            LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                            tvMargins.setMargins(0, 24, 0, 16);
+                            if (mLastLocation != null) {
+                                // setup question answer to send
+                                QuestionAnswer qa = new QuestionAnswer(
+                                        user.getKey(),
+                                        mLastLocation.getLatitude(),
+                                        mLastLocation.getLongitude(),
+                                        "...",
+                                        question.getQuestion(),
+                                        question.get_options().get(1).getKey(),
+                                        System.currentTimeMillis()/1000,
+                                        question.getKey()
+                                );
 
-                            TextView yourtv = new TextView(getActivity());
-                            yourtv.setTextColor(Color.parseColor("#2196f3"));
-                            yourtv.setText("Thanks for your feedback. Click to find out how SMRT is improving your daily ride on train services in Singapore every day.");
-                            yourtv.setLayoutParams(tvMargins);
-                            layout.addView(yourtv);
+                                QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(1).getKey(), qa);
 
+                                // disable current button
+                                // display show answer button
+                                layout.removeView(option1);
+                                option2.setEnabled(false);
+
+                                Button button = new Button(getActivity());
+                                button.setText("Show Community Answers");
+                                button.setBackgroundColor(Color.parseColor("#2196f3"));
+                                button.setTextColor(Color.WHITE);
+                                button.setTextSize(12f);
+                                button.setElevation(2);
+                                button.setPadding(0, 2, 0, 2);
+                                button.setLayoutParams(narrowButtonMargins);
+                                button.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                                        myIntent.putExtra("username", user.getKey());
+                                        myIntent.putExtra("question", question.getKey());
+                                        startActivity(myIntent);
+                                    }
+                                });
+
+                                layout.addView(button);
+
+                                // send intent to question detail with new button
+                                // abstract to standard method
+
+                            } else {
+                                Toast.makeText(getActivity(), "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+                            }
+
+
+//                            LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+//                            tvMargins.setMargins(0, 24, 0, 16);
+//
+//                            TextView yourtv = new TextView(getActivity());
+//                            yourtv.setTextColor(Color.parseColor("#2196f3"));
+//                            yourtv.setText("Thanks for your feedback. Click to find out how SMRT is improving your daily ride on train services in Singapore every day.");
+//                            yourtv.setLayoutParams(tvMargins);
+//                            layout.addView(yourtv);
                         }
                     });
                 }
                 break;
             case "multioption":
-                for(QuestionOption qo : question.get_options())
+
+                final ScrollView scroll = new ScrollView(getActivity());
+                scroll.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 490));
+
+                final LinearLayout lis = new LinearLayout(getActivity());
+                lis.setOrientation(LinearLayout.VERTICAL);
+                lis.setBackgroundColor(getResources().getColor(android.R.color.transparent));
+                lis.setLayoutParams(new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT));
+
+                int buttonid = 0;
+                for(final QuestionOption qo : question.get_options())
                 {
                     if (qo != null) {
-                        Button button = new Button(getActivity());
+                        final Button button = new Button(getActivity());
                         button.setText(qo.getKey());
                         button.setBackgroundColor(Color.parseColor("#CFD8DC"));
                         button.setTextColor(Color.BLACK);
+                        button.setId(buttonid);
                         button.setTextSize(12f);
                         button.setElevation(2);
                         button.setPadding(0, 2, 0, 2);
                         button.setLayoutParams(narrowButtonMargins);
 
-                        layout.addView(button);
+                        button.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                if (mLastLocation != null) {
+                                    // setup question answer to send
+                                    QuestionAnswer qa = new QuestionAnswer(
+                                            user.getKey(),
+                                            mLastLocation.getLatitude(),
+                                            mLastLocation.getLongitude(),
+                                            "...",
+                                            question.getQuestion(),
+                                            qo.getKey(),
+                                            System.currentTimeMillis()/1000,
+                                            question.getKey()
+                                    );
+
+                                    QuestionAnswer.addNodeToFirebase(question.getKey(), qo.getKey(), qa);
+
+                                    // disable current button
+                                    // display show answer button
+                                    scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+                                    lis.removeAllViews();
+                                    lis.addView(button);
+                                    button.setEnabled(false);
+
+                                    Button rbutton = new Button(getActivity());
+                                    rbutton.setText("Show Community Answers");
+                                    rbutton.setBackgroundColor(Color.parseColor("#2196f3"));
+                                    rbutton.setTextColor(Color.WHITE);
+                                    rbutton.setTextSize(12f);
+                                    rbutton.setElevation(2);
+                                    rbutton.setPadding(0, 2, 0, 2);
+                                    rbutton.setLayoutParams(narrowButtonMargins);
+                                    rbutton.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                                            myIntent.putExtra("username", user.getKey());
+                                            myIntent.putExtra("question", question.getKey());
+                                            startActivity(myIntent);
+                                        }
+                                    });
+
+                                    layout.addView(rbutton);
+
+                                    // send intent to question detail with new button
+                                    // abstract to standard method
+
+                                } else {
+                                    Toast.makeText(getActivity(), "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+
+                        lis.addView(button);
+                        buttonid++;
                     }
                 }
+
+                scroll.addView(lis);
+                layout.addView(scroll);
+
                 break;
             case "rating":
-                RatingBar rb = new RatingBar(getActivity());
+                final RatingBar rb = new RatingBar(getActivity());
                 rb.setNumStars(5);
-                LinearLayout.LayoutParams ratingMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                ratingMargins.setMargins(0, 16, 0, 16);
+                LinearLayout.LayoutParams ratingMargins = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                ratingMargins.setMargins(0, 16, 0, 0);
                 ratingMargins.gravity = Gravity.CENTER_HORIZONTAL;
                 rb.setLayoutParams(ratingMargins);
                 rb.setStepSize(1);
+                LayerDrawable stars = (LayerDrawable) rb.getProgressDrawable();
+                stars.getDrawable(2).setColorFilter(Color.parseColor("#2196F3"), PorterDuff.Mode.SRC_ATOP);
                 layout.addView(rb);
 
-                LinearLayout ll = new LinearLayout(getActivity());
-                ll.setOrientation(LinearLayout.HORIZONTAL);
-
-                LinearLayout.LayoutParams labels = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                labels.setMargins(0, 16, 0, 16);
-
+                RelativeLayout relativeLayout = new RelativeLayout(getActivity());
+                relativeLayout.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
                 //sort options before putting in:
                 Collections.sort(question.get_options(), new Comparator<QuestionOption>() {
                     @Override
@@ -218,41 +420,161 @@ public class SingleQuestionFragment extends Fragment {
                 });
 
                 TextView tv1 = new TextView(getActivity());
-                tv1.setText(question.get_options().get(0).getKey());
+                tv1.setText(question.get_options().get(0).getKey().split(";")[1]);
                 tv1.setTextSize(12);
-                tv1.setLayoutParams(labels);
-                tv1.setGravity(Gravity.LEFT);
-                ll.addView(tv1);
+                RelativeLayout.LayoutParams left = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                left.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                tv1.setLayoutParams(left);
+                tv1.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_START);
+                relativeLayout.addView(tv1);
 
                 TextView tv2 = new TextView(getActivity());
-                tv2.setText(question.get_options().get(4).getKey());
+                tv2.setText(question.get_options().get(4).getKey().split(";")[1]);
                 tv2.setTextSize(12);
-                tv2.setLayoutParams(labels);
-                tv2.setGravity(Gravity.RIGHT);
-                ll.addView(tv2);
+                RelativeLayout.LayoutParams right = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                right.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                tv2.setLayoutParams(right);
+                tv2.setTextAlignment(View.TEXT_ALIGNMENT_TEXT_END);
+                relativeLayout.addView(tv2);
 
-                layout.addView(ll);
+                layout.addView(relativeLayout);
 
-                Button button = new Button(getActivity());
+                final Button button = new Button(getActivity());
                 button.setText("RATE!");
                 button.setBackgroundColor(Color.parseColor("#42A5F5"));
                 button.setTextColor(Color.WHITE);
                 button.setTextSize(12f);
                 button.setElevation(2);
                 button.setPadding(0, 2, 0, 2);
+                narrowButtonMargins.setMargins(0, 16, 0, 2);
                 button.setLayoutParams(narrowButtonMargins);
+                button.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        float s = rb.getRating();
+                        int selected = (int) s;
+                        if (selected != 0) {
+                            if (mLastLocation != null) {
+
+                                // setup question answer to send
+                                QuestionAnswer qa = new QuestionAnswer(
+                                        user.getKey(),
+                                        mLastLocation.getLatitude(),
+                                        mLastLocation.getLongitude(),
+                                        "...",
+                                        question.getQuestion(),
+                                        question.get_options().get(selected-1).getKey(),
+                                        System.currentTimeMillis()/1000,
+                                        question.getKey()
+                                );
+
+                                QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(selected-1).getKey(), qa);
+
+                                // disable current button
+                                // display show answer button
+
+                                rb.setEnabled(false);
+                                button.setEnabled(false);
+
+                                Button rbutton = new Button(getActivity());
+                                rbutton.setText("Show Community Answers");
+                                rbutton.setBackgroundColor(Color.parseColor("#2196f3"));
+                                rbutton.setTextColor(Color.WHITE);
+                                rbutton.setTextSize(12f);
+                                rbutton.setElevation(2);
+                                rbutton.setPadding(0, 2, 0, 2);
+                                //narrowButtonMargins.setMargins(0, 12, 0, 12);
+                                rbutton.setLayoutParams(narrowButtonMargins);
+                                rbutton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                                        myIntent.putExtra("username", user.getKey());
+                                        myIntent.putExtra("question", question.getKey());
+                                        startActivity(myIntent);
+                                    }
+                                });
+                                layout.removeView(button);
+                                layout.addView(rbutton);
+
+                                // send intent to question detail with new button
+                                // abstract to standard method
+
+                            } else {
+                                Toast.makeText(getActivity(), "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(getActivity(), "Select a rating first!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
 
                 layout.addView(button);
 
                 break;
             case "fuzzytext":
-                EditText text = new EditText(getActivity());
+                final EditText text = new EditText(getActivity());
                 text.setHint("Enter the correct answer...");
                 text.setElevation(2);
                 text.setLayoutParams(buttonMargins);
                 text.setMaxLines(1);
                 text.setSingleLine();
                 text.setImeOptions(EditorInfo.IME_ACTION_GO);
+                text.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+                    @Override
+                    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
+                        if(actionId == EditorInfo.IME_ACTION_GO) {
+                            if (mLastLocation != null) {
+                                // setup question answer to send
+                                QuestionAnswer qa = new QuestionAnswer(
+                                        user.getKey(),
+                                        mLastLocation.getLatitude(),
+                                        mLastLocation.getLongitude(),
+                                        "...",
+                                        question.getQuestion(),
+                                        text.getText().toString(),
+                                        System.currentTimeMillis()/1000,
+                                        question.getKey()
+                                );
+
+                                QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(0).getKey(), qa);
+
+                                // disable current button
+                                // display show answer button
+                                text.setEnabled(false);
+
+                                Button rbutton = new Button(getActivity());
+                                rbutton.setText("Show Community Answers");
+                                rbutton.setBackgroundColor(Color.parseColor("#2196f3"));
+                                rbutton.setTextColor(Color.WHITE);
+                                rbutton.setTextSize(12f);
+                                rbutton.setElevation(2);
+                                rbutton.setPadding(0, 2, 0, 2);
+                                rbutton.setLayoutParams(narrowButtonMargins);
+                                rbutton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                                        myIntent.putExtra("username", user.getKey());
+                                        myIntent.putExtra("question", question.getKey());
+                                        startActivity(myIntent);
+                                    }
+                                });
+
+                                layout.addView(rbutton);
+
+                                // send intent to question detail with new button
+                                // abstract to standard method
+
+                            } else {
+                                Toast.makeText(getActivity(), "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        return false;
+                    }
+                });
 
                 layout.addView(text);
                 break;
@@ -264,6 +586,36 @@ public class SingleQuestionFragment extends Fragment {
                 camerabutton.setTextColor(Color.WHITE);
                 camerabutton.setElevation(2);
                 camerabutton.setLayoutParams(buttonMargins);
+                cameraButtonId = View.generateViewId();
+                camerabutton.setId(cameraButtonId);
+                camerabutton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+                        String imageFileName = "CrowdOps_" + timeStamp + "_";
+                        File storageDir = Environment.getExternalStoragePublicDirectory(
+                                Environment.DIRECTORY_PICTURES);
+                        File image = null;
+                        try {
+                            image = File.createTempFile(
+                                    imageFileName,  /* prefix */
+                                    ".jpg",         /* suffix */
+                                    storageDir      /* directory */
+                            );
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        mCurrentPhotoPath = image.getAbsolutePath();
+
+                        if (image != null) {
+                            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(image));
+                            startActivityForResult(cameraIntent, 1337);
+                        }
+                    }
+                });
 
                 layout.addView(camerabutton);
                 break;
@@ -276,6 +628,142 @@ public class SingleQuestionFragment extends Fragment {
         tvQuestionText.setText(question.getQuestion());
 
         return view;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == 1337 && resultCode == Activity.RESULT_OK) {
+
+
+            final LinearLayout layout = (LinearLayout) getActivity().findViewById(R.id.linearLayoutCard);
+            final LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,110);
+            narrowButtonMargins.setMargins(0, 12, 0, 12);
+
+            final Button camerabutton = (Button) layout.findViewById(cameraButtonId);
+            final ImageView iv = new ImageView(getActivity());
+
+            if (mLastLocation != null) {
+
+                class CloudinaryUpload extends AsyncTask<InputStream, Boolean, String> {
+
+                    @Override
+                    protected void onPreExecute() {
+                        super.onPreExecute();
+                    }
+
+                    @Override
+                    protected String doInBackground(InputStream... params) {
+                        Cloudinary cloudinary = new Cloudinary(Utils.cloudinaryUrlFromContext(getActivity()));
+                        Map map = new HashMap<String, String>();
+                        try {
+                            map = cloudinary.uploader().upload(params[0], ObjectUtils.emptyMap());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                        if(map.size() != 0)
+                        {
+                            // send intent to question detail with new button
+                            // abstract to standard method
+                            return (String) map.get("url");
+                        }
+                        else
+                        {
+                            cancel(true);
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    protected void onPostExecute(String s) {
+                        // setup question answer to send
+                        QuestionAnswer qa = new QuestionAnswer(
+                                user.getKey(),
+                                mLastLocation.getLatitude(),
+                                mLastLocation.getLongitude(),
+                                "...",
+                                question.getQuestion(),
+                                s,
+                                System.currentTimeMillis()/1000,
+                                question.getKey()
+                        );
+
+                        QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(0).getKey(), qa);
+
+                        // disable current button
+                        // display show answer button
+                        camerabutton.setEnabled(false);
+                        layout.removeView(camerabutton);
+
+                        Button rbutton = new Button(getActivity());
+                        rbutton.setText("Show Community Answers");
+                        rbutton.setBackgroundColor(Color.parseColor("#2196f3"));
+                        rbutton.setTextColor(Color.WHITE);
+                        rbutton.setTextSize(12f);
+                        rbutton.setElevation(2);
+                        rbutton.setPadding(0, 2, 0, 2);
+                        rbutton.setLayoutParams(narrowButtonMargins);
+                        rbutton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent myIntent = new Intent(getActivity(),QuestionDetailActivity.class);
+                                myIntent.putExtra("username", user.getKey());
+                                myIntent.putExtra("question", question.getKey());
+                                startActivity(myIntent);
+                            }
+                        });
+
+                        layout.addView(rbutton);
+
+                        super.onPostExecute(s);
+                    }
+
+                    @Override
+                    protected void onProgressUpdate(Boolean... values) {
+                        super.onProgressUpdate(values);
+                    }
+
+                    @Override
+                    protected void onCancelled() {
+                        layout.removeView(iv);
+                        Toast.makeText(getActivity(), "Try again. We weren't able to upload the photo.", Toast.LENGTH_SHORT).show();
+                        super.onCancelled();
+                    }
+                }
+
+                try {
+                    iv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 300));
+                    // Get the dimensions of the bitmap
+                    BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+                    bmOptions.inJustDecodeBounds = false;
+                    bmOptions.inSampleSize = 4;
+                    Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+                    iv.setImageBitmap(bitmap);
+
+                    layout.addView(iv);
+
+//                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
+//                byte[] bitmapdata = bos.toByteArray();
+//                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
+
+                    File file = new File(mCurrentPhotoPath);
+                    FileInputStream fileInputStream = new FileInputStream(file);
+                    new CloudinaryUpload().execute(fileInputStream);
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    //layout.removeView(iv);
+                    Toast.makeText(getActivity(), "Try again. We weren't able to save the photo.", Toast.LENGTH_SHORT).show();
+                }
+
+            } else {
+                Toast.makeText(getActivity(), "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+            }
+
+        } else {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -300,6 +788,32 @@ public class SingleQuestionFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(this.getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .build();
+
+        mGoogleApiClient.connect();
+    }
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 
     /**

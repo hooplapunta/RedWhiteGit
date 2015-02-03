@@ -19,10 +19,11 @@ public class QuestionAnswer implements FirebaseNode{
     String answered_username;
     double lat;
     double lng;
+    String question_key;
     String question_answer;
+    String question_text;
     String response_data;
     long response_datetime;
-    String question_key;
 
     public String getAnswered_username() {
         return answered_username;
@@ -56,6 +57,14 @@ public class QuestionAnswer implements FirebaseNode{
         this.question_answer = question_answer;
     }
 
+    public String getQuestion_text() {
+        return question_text;
+    }
+
+    public void setQuestion_text(String question_text) {
+        this.question_text = question_text;
+    }
+
     public String getResponse_data() {
         return response_data;
     }
@@ -84,11 +93,12 @@ public class QuestionAnswer implements FirebaseNode{
 
     }
 
-    public QuestionAnswer(String answered_username, double lat, double lng, String question_answer, String response_data, long response_datetime, String question_key) {
+    public QuestionAnswer(String answered_username, double lat, double lng, String question_answer, String question_text, String response_data, long response_datetime, String question_key) {
         this.answered_username = answered_username;
         this.lat = lat;
         this.lng = lng;
         this.question_answer = question_answer;
+        this.question_text = question_text;
         this.response_data = response_data;
         this.response_datetime = response_datetime;
         this.question_key = question_key;
@@ -101,6 +111,7 @@ public class QuestionAnswer implements FirebaseNode{
                 (double)map.get("lat"),
                 (double)map.get("lng"),
                 ((String)map.get("question_answer")),
+                ((String)map.get("question_text")),
                 (String)map.get("response_data"),
                 (long)map.get("response_datetime"),
                 (String)map.get("question")
@@ -117,7 +128,7 @@ public class QuestionAnswer implements FirebaseNode{
         ref.addListenerForSingleValueEvent(listener);
     }
 
-    public static String addNode(QuestionAnswer qa) {
+    public static String addNodeToQuestionAnswer(QuestionAnswer qa) {
         String key = null;
 
         Firebase ref = new Firebase(FIREBASEPATH + "question_answer/");
@@ -134,9 +145,25 @@ public class QuestionAnswer implements FirebaseNode{
         return newRef.getKey();
     }
 
-    public static String editNode(QuestionAnswer qa) {
-        String key = null;
+    public static void addNodeToQuestion(String question_key, String option_key, QuestionAnswer qa) {
+        Firebase ref = new Firebase(FIREBASEPATH +"question/" + question_key +"/options/" +option_key);
 
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> m = mapper.convertValue(qa, Map.class);
+
+        Firebase newRef = ref.child(qa.answered_username);
+        newRef.setValue(m);
+    }
+
+    public static String addNodeToFirebase(String question_key, String option_key, QuestionAnswer qa) {
+        String key = addNodeToQuestionAnswer(qa);
+        qa.setQuestion_answer(key);
+        addNodeToQuestion(question_key, option_key, qa);
+
+        return key;
+    }
+
+    public static String editNode(QuestionAnswer qa) {
         Firebase ref = new Firebase(FIREBASEPATH + "question_answer/" +qa.getQuestion_answer());
 
         ObjectMapper mapper = new ObjectMapper();
@@ -146,4 +173,6 @@ public class QuestionAnswer implements FirebaseNode{
 
         return qa.getQuestion_answer();
     }
+
+
 }

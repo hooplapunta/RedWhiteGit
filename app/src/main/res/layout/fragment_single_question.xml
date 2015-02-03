@@ -52,6 +52,9 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             />
+
+        <!-- Question controls go here -->
+
     </LinearLayout>
 
 </RelativeLayout>

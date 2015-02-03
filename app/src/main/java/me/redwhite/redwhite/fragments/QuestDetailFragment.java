@@ -1,8 +1,8 @@
 package me.redwhite.redwhite.fragments;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.graphics.Color;
-import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -10,7 +10,6 @@ import android.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,9 +27,6 @@ import android.widget.TextView;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.github.ksoichiro.android.observablescrollview.ObservableScrollView;
-import com.github.ksoichiro.android.observablescrollview.ObservableScrollViewCallbacks;
-import com.github.ksoichiro.android.observablescrollview.ScrollUtils;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -40,35 +36,28 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.TileOverlayOptions;
-import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
-import me.redwhite.redwhite.MainActivity;
 import me.redwhite.redwhite.R;
 import me.redwhite.redwhite.models.Community;
+import me.redwhite.redwhite.models.Quest;
+import me.redwhite.redwhite.models.QuestQuestion;
 import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.models.User;
-import me.redwhite.redwhite.utils.BaseFragment;
 import me.redwhite.redwhite.utils.CacheFragmentStatePagerAdapter;
 import me.redwhite.redwhite.utils.SlidingTabLayout;
-import me.redwhite.redwhite.utils.ViewPagerTabListViewFragment;
-import me.redwhite.redwhite.utils.ViewPagerTabRecyclerViewFragment;
-import me.redwhite.redwhite.utils.ViewPagerTabScrollViewFragment;
-
 
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link BrowseQuestionsListFragment.OnFragmentInteractionListener} interface
+ * {@link QuestDetailFragment.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link BrowseQuestionsListFragment#newInstance} factory method to
+ * Use the {@link QuestDetailFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class BrowseQuestionsListFragment extends Fragment {
+public class QuestDetailFragment extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -100,8 +89,8 @@ public class BrowseQuestionsListFragment extends Fragment {
      * @return A new instance of fragment BrowseQuestionsListFragment.
      */
     // TODO: Rename and change types and number of parameters
-    public static BrowseQuestionsListFragment newInstance(String param1, String param2) {
-        BrowseQuestionsListFragment fragment = new BrowseQuestionsListFragment();
+    public static QuestDetailFragment newInstance(String param1, String param2) {
+        QuestDetailFragment fragment = new QuestDetailFragment();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -109,7 +98,7 @@ public class BrowseQuestionsListFragment extends Fragment {
         return fragment;
     }
 
-    public BrowseQuestionsListFragment() {
+    public QuestDetailFragment() {
         // Required empty public constructor
     }
 
@@ -123,17 +112,14 @@ public class BrowseQuestionsListFragment extends Fragment {
 
         // Allow access to the ActionBar
         setHasOptionsMenu(true);
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-
-        // Original inflater
-        //return inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
-
-        View v = inflater.inflate(R.layout.fragment_browse_questions_list, container, false);
+        View v = inflater.inflate(R.layout.fragment_quest_detail, container, false);
 
         mMapView = (MapView) v.findViewById(R.id.mapView);
         mMapView.onCreate(savedInstanceState);
@@ -164,42 +150,6 @@ public class BrowseQuestionsListFragment extends Fragment {
                     @Override
                     public void onInfoWindowClick(Marker marker) {
 
-                        FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
-                        final LinearLayout question = (LinearLayout) frameLayout.findViewById(R.id.linearLayoutCard);
-
-                        TextView questionText = (TextView) question.findViewById(R.id.tvQuestionText);
-                        questionText.setText(marker.getTitle());
-
-                        LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                        buttonMargins.setMargins(0, 16, 0, 16);
-
-                        Button option1 = new Button(getActivity());
-                        option1.setText("Yes, questions are awesome!");
-                        option1.setBackgroundColor(Color.parseColor("#F44336"));
-                        option1.setTextColor(Color.WHITE);
-                        option1.setElevation(2);
-                        option1.setLayoutParams(buttonMargins);
-
-                        option1.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-
-
-                            }
-                        });
-
-                        question.addView(option1);
-
-                        Button option2 = new Button(getActivity());
-                        option2.setText("No, I think we can do better than just questions.");
-                        option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
-                        option2.setTextColor(Color.BLACK);
-                        option2.setElevation(2);
-                        option2.setLayoutParams(buttonMargins);
-                        question.addView(option2);
-
-                        View tempFrom = frameLayout.getChildAt(0);
-                        frameLayout.bringChildToFront(tempFrom);
                     }
                 });
             }
@@ -220,6 +170,20 @@ public class BrowseQuestionsListFragment extends Fragment {
         u.get_communities_joined().add("sg");
         u.get_communities_joined().add("nyp");
 
+        //TODO: need to pickup the quest from an earlier screen
+        final Quest quest = new Quest();
+        ArrayList<QuestQuestion> qqlist = new ArrayList<QuestQuestion>();
+        qqlist.add(new QuestQuestion("1", 1.298721, 103.847431));
+        //qqlist.add(new QuestQuestion("2", 1.379978, 103.848772));
+        qqlist.add(new QuestQuestion("3", 1.303895, 103.831941));
+        qqlist.add(new QuestQuestion("4", 1.404349, 103.793023));
+        qqlist.add(new QuestQuestion("5", 1.253449, 103.818881));
+        qqlist.add(new QuestQuestion("somethingsomething", 1.25322, 103.82));
+        quest.setQuestions(qqlist);
+
+        ActionBar actionBar = getActivity().getActionBar();
+        actionBar.setTitle("THE QUEST TITLE");
+
         questionList = new ArrayList<Question>();
         titleList = new ArrayList<String>();
 
@@ -233,82 +197,65 @@ public class BrowseQuestionsListFragment extends Fragment {
             protected ArrayList<Question> doInBackground(String... communities) {
                 final ArrayList<Question> incoming = new ArrayList<Question>();
 
-                for(final String communityKey: communities) {
-                    //Log.println(Log.INFO, "Finding community: ", communityKey);
-                    Community.findNodeByKey(communityKey, new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            Community c = Community.convertFromMap((Map<String, Object>) dataSnapshot.getValue());
+                    for (final QuestQuestion qs : quest.getQuestions()) {
+                        //Log.println(Log.INFO, "Finding question: ", qs.question);
+                        Question.findNodeByKey(qs.getKey(), new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
 
-                            for (final Community.QuestionStatus qs : c.get_questions()) {
-                                //Log.println(Log.INFO, "Finding question: ", qs.question);
-                                Question.findNodeByKey(qs.question, new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                Question q = Question.convertFromMap(qs.getKey(), (Map<String, Object>) dataSnapshot.getValue());
 
-                                        Question q = Question.convertFromMap(qs.question, (Map<String, Object>) dataSnapshot.getValue());
+                                boolean questionExists = false;
+                                for (Question z : questionList) {
+                                    if (z.getKey().equals(q.getKey())) {
+                                        questionExists = true;
+                                        break;
+                                    }
+                                }
 
-                                        boolean questionExists = false;
-                                        for(Question z : questionList)
-                                        {
-                                            if(z.getKey().equals(q.getKey()))
-                                            {
-                                                questionExists = true;
-                                                break;
-                                            }
-                                        }
-
-                                        if (!questionExists) {
-                                            //bughack recovery
-                                            if(questionList.size() == 2 && (questionList.get(0) == questionList.get(1)))
-                                            {
-                                                questionList.remove(0);
-                                                titleList.remove(0);
-                                            }
-
-                                            questionList.add(q);
-                                            titleList.add("#" +communityKey);
-
-                                            //bughack to prevent crashing when reloading for this second time
-                                            if(questionList.size() == 1)
-                                            {
-                                                questionList.add(q);
-                                                titleList.add("#" +communityKey);
-                                            }
-
-                                            gMap.addMarker(new MarkerOptions()
-                                                    .title(q.getQuestion())
-                                                    .snippet("asked by " +q.getCreated_username())
-                                                    .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
-                                        }
-
-                                        navigationAdapter = new NavigationAdapter(((FragmentActivity)getActivity()).getSupportFragmentManager(), questionList, titleList, u);
-                                        viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
-                                        viewPager.setAdapter(navigationAdapter);
-
-                                        final SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
-                                        slidingTabLayout.setCustomTabView(R.layout.tab_indicator, android.R.id.text1);
-                                        slidingTabLayout.setSelectedIndicatorColors(getResources().getColor(R.color.accent));
-                                        slidingTabLayout.setDistributeEvenly(true);
-                                        slidingTabLayout.setViewPager(viewPager);
-
-                                        slidingTabLayout.attachFragment(BrowseQuestionsListFragment.this);
+                                if (!questionExists) {
+                                    //bughack recovery
+                                    if (questionList.size() == 2 && (questionList.get(0) == questionList.get(1))) {
+                                        questionList.remove(0);
+                                        titleList.remove(0);
                                     }
 
-                                    @Override
-                                    public void onCancelled(FirebaseError firebaseError) {
+                                    questionList.add(q);
+                                    titleList.add("question");
 
+                                    //bughack to prevent crashing when reloading for this second time
+                                    if (questionList.size() == 1) {
+                                        questionList.add(q);
+                                        titleList.add("question");
                                     }
-                                });
+
+                                    gMap.addMarker(new MarkerOptions()
+                                            .title(q.getQuestion())
+                                            .snippet("asked by " + q.getCreated_username())
+                                            .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
+                                }
+
+                                navigationAdapter = new NavigationAdapter(((FragmentActivity) getActivity()).getSupportFragmentManager(), questionList, titleList, u);
+                                viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
+                                viewPager.setAdapter(navigationAdapter);
+
+                                final SlidingTabLayout slidingTabLayout = (SlidingTabLayout) getActivity().findViewById(R.id.sliding_tabs);
+                                slidingTabLayout.setCustomTabView(R.layout.tab_indicator, android.R.id.text1);
+                                slidingTabLayout.setSelectedIndicatorColors(getResources().getColor(R.color.accent));
+                                slidingTabLayout.setDistributeEvenly(true);
+                                slidingTabLayout.setViewPager(viewPager);
+
+                                slidingTabLayout.attachFragment(QuestDetailFragment.this);
                             }
-                        }
 
-                        @Override
-                        public void onCancelled(FirebaseError firebaseError) {
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
 
-                        }
-                    });
-                }
+                            }
+                        });
+                    }
+
+
 
                 return incoming;
             }
@@ -510,4 +457,5 @@ public class BrowseQuestionsListFragment extends Fragment {
 
         return super.onOptionsItemSelected(item);
     }
+
 }

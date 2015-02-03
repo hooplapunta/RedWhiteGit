@@ -120,7 +120,7 @@ public class Community implements FirebaseNode{
         }
 
         for (Map.Entry<String, Object> e : users.entrySet()) {
-            _questions.add(new QuestionStatus(e.getKey(), (boolean)e.getValue()));
+            this._users.add(e.getKey());
         }
     }
 
@@ -149,15 +149,32 @@ public class Community implements FirebaseNode{
 
     public static Community convertFromMap(Map<String, Object> map)
     {
-        return new Community(
-                (String)map.get("description"),
-                (String)map.get("imageurl"),
-                (String)map.get("name"),
-                (String)map.get("shortname"),
-                (boolean)map.get("temp"),
-                (ArrayList<Object>)map.get("questions"),
-                (Map<String, Object>)map.get("users")
-        );
+        if (map.get("questions") instanceof  Map)
+        {
+            return new Community(
+                    (String)map.get("description"),
+                    (String)map.get("imageurl"),
+                    (String)map.get("name"),
+                    (String)map.get("shortname"),
+                    (boolean)map.get("temp"),
+                    (Map<String, Object>)map.get("questions"),
+                    (Map<String, Object>)map.get("users")
+            );
+        }
+        else
+        {
+            return new Community(
+                    (String)map.get("description"),
+                    (String)map.get("imageurl"),
+                    (String)map.get("name"),
+                    (String)map.get("shortname"),
+                    (boolean)map.get("temp"),
+                    (ArrayList<Object>)map.get("questions"),
+                    (Map<String, Object>)map.get("users")
+            );
+        }
+
+
     }
 
     public static ArrayList<Community> convertListFromMap(Map<String, Object> map)
