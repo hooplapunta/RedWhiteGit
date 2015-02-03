@@ -26,17 +26,28 @@ android:tag="sticky"
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="900px"
         android:elevation="0dp"/>
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="200px"
+            android:id="@+id/btn_Buffer"
+            android:text="Buffer"/>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent">
         <TextView
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/tvOption1"/>
         <TextView
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/tvOption2"/>
+        </LinearLayout>
 
     </LinearLayout>
 

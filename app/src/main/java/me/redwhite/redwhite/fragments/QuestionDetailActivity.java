@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -50,6 +52,10 @@ public class QuestionDetailActivity extends Activity {
     TextView tvOption1;
     TextView tvOption2;
 
+    int option1count;
+    int option2count;
+
+
     private MapView mMapView;
     private GoogleMap gMap;
 
@@ -61,8 +67,11 @@ public class QuestionDetailActivity extends Activity {
 
     Question question;
 
+    Button buttonBuffer;
 
 
+    List<LatLng> redList = new ArrayList<LatLng>();
+    List<LatLng> whitelist = new ArrayList<LatLng>();
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +90,7 @@ public class QuestionDetailActivity extends Activity {
 
                 tvOption1 = (TextView)findViewById(R.id.tvOption1);
                 tvOption2 = (TextView)findViewById(R.id.tvOption2);
+                buttonBuffer = (Button)findViewById(R.id.btn_Buffer);
 
                 frameLayout = (FrameLayout) findViewById(R.id.frameLayoutSingleQuestion);
 
@@ -98,11 +108,22 @@ public class QuestionDetailActivity extends Activity {
 
                 questionTxt.setText(questionFromMain);
 
+                buttonBuffer.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                        doBuffer();
+
+                        Log.println(Log.INFO,"","pass button");
+
+                    }
+                });
+
                 TextView tv = new TextView(QuestionDetailActivity.this);
                 tv.setText(usernameFromMain+ "'s answer:");
                 layout.addView(tv);
 
-                Button option1 = new Button(QuestionDetailActivity.this);
+                final Button option1 = new Button(QuestionDetailActivity.this);
                 option1.setText("Yes, questions are awesome!");
                 option1.setBackgroundColor(Color.parseColor("#F44336"));
                 option1.setTextColor(Color.WHITE);
@@ -138,7 +159,8 @@ public class QuestionDetailActivity extends Activity {
                 option2.setLayoutParams(buttonMargins);
                 layout.addView(option2);
 
-
+                tvOption1.setText(Integer.toString(option1count));
+                tvOption2.setText(Integer.toString(option2count));
 
 
                 //TODO: Junhong this is where you get the map ready and put in the heatmap
@@ -201,11 +223,11 @@ public class QuestionDetailActivity extends Activity {
                                 .snippet("asked by SMRT")
                                 .position(new LatLng(1.381, 103.844)));
 
-                        List<LatLng> redList = new ArrayList<LatLng>();
+
 
 
                         ArrayList<QuestionAnswer> qaList = question.get_options().get(0).get_answers();
-                        final int option1 = qaList.size();
+                       option1count = qaList.size();
 
                         //get an array list of responses that used (0) question option
                         for (QuestionAnswer qa : qaList)
@@ -246,11 +268,11 @@ public class QuestionDetailActivity extends Activity {
 
 
                         //TODO: Loop through question.getQuestionOptions().get(2).getQuestionAnswers() arraylist
-                        List<LatLng> whitelist = new ArrayList<LatLng>();
+
 
                         ArrayList<QuestionAnswer> qaList2 = question.get_options().get(1).get_answers();
                         //get an array list of responses that used (0) question option
-                        final int option2 = qaList2.size();
+                        option2count = qaList2.size();
                         for (QuestionAnswer qa2 : qaList2)
                         {
                             double lat = qa2.getLat();
@@ -279,9 +301,6 @@ public class QuestionDetailActivity extends Activity {
                         // Add a tile overlay to the map, using the heat map tile provider.
                         mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
 
-                        tvOption1.setText(Integer.toString(option1));
-                        tvOption2.setText(Integer.toString(option2));
-
 
 
                         FrameLayout container = (FrameLayout) findViewById(R.id.analysisContainer);
@@ -300,6 +319,54 @@ public class QuestionDetailActivity extends Activity {
 
     }
 
+    private void doBuffer(){
+        gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            public void onMapClick(LatLng point) {
+
+                CircleOptions circleOptions = new CircleOptions()
+                        .center(point)
+                        .radius(1000)
+                        .fillColor(Color.argb(95, 178, 30, 37))
+                        .strokeColor(Color.TRANSPARENT);
+
+                gMap.addCircle(circleOptions);
+                Log.println(Log.INFO, "", "failure");
+                showBuffer(point);
+                Log.println(Log.INFO, "", "pass");
+            }
+        });
+    }
+
+    private void showBuffer(LatLng point){
+        int option1 =0;
+        int option2 =0;
+        double x1 = point.longitude;
+        double y1 = point.latitude;
+        double x2, y2;
+        String bufferList = "";
+
+        for(int count = 0; count < redList.size(); count++){
+            double distance = 0;
+            x2 = redList.get(count).latitude;
+            y2 = redList.get(count).longitude;
+            distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+            distance = distance * 100;
+            if(distance < 1){
+                option1count ++;
+            }
+        }
+        for(int count = 0; count < whitelist.size(); count++){
+            double distance = 0;
+            x2 = whitelist.get(count).latitude;
+            y2 = whitelist.get(count).longitude;
+            distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+            distance = distance * 100;
+            if(distance < 1){
+                option2count ++;
+            }
+        }
+
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
