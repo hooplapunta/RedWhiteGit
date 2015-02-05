@@ -6,6 +6,9 @@ repositories {
         url "https://oss.sonatype.org/content/repositories/snapshots/"
     }
 
+    maven {
+        url "https://repository-achartengine.forge.cloudbees.com/snapshot/"
+    }
 }
 
 android {
