@@ -159,8 +159,6 @@ public class QuestionDetailActivity extends Activity {
                 option2.setLayoutParams(buttonMargins);
                 layout.addView(option2);
 
-                tvOption1.setText(Integer.toString(option1count));
-                tvOption2.setText(Integer.toString(option2count));
 
 
                 //TODO: Junhong this is where you get the map ready and put in the heatmap
@@ -186,7 +184,7 @@ public class QuestionDetailActivity extends Activity {
                         googleMap.setMyLocationEnabled(true);
 
                         CameraPosition cameraPosition = new CameraPosition.Builder()
-                                .target(singapore).zoom(10).build();
+                                .target(singapore).zoom(13).build();
                         googleMap.animateCamera(CameraUpdateFactory
                                 .newCameraPosition(cameraPosition));
 
@@ -305,10 +303,14 @@ public class QuestionDetailActivity extends Activity {
 
                         FrameLayout container = (FrameLayout) findViewById(R.id.analysisContainer);
 
+                        tvOption1.setText(Integer.toString(option1count));
+                        tvOption2.setText(Integer.toString(option2count));
+
                     }
                 });
 
             }
+
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
@@ -325,7 +327,7 @@ public class QuestionDetailActivity extends Activity {
 
                 CircleOptions circleOptions = new CircleOptions()
                         .center(point)
-                        .radius(1000)
+                        .radius(500)
                         .fillColor(Color.argb(95, 178, 30, 37))
                         .strokeColor(Color.TRANSPARENT);
 
@@ -338,21 +340,24 @@ public class QuestionDetailActivity extends Activity {
     }
 
     private void showBuffer(LatLng point){
-        int option1 =0;
-        int option2 =0;
+        Log.println(Log.INFO, "", "managed to run show buffer");
+        option1count =0;
+        option2count =0;
         double x1 = point.longitude;
         double y1 = point.latitude;
         double x2, y2;
-        String bufferList = "";
+
 
         for(int count = 0; count < redList.size(); count++){
             double distance = 0;
             x2 = redList.get(count).latitude;
             y2 = redList.get(count).longitude;
             distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
-            distance = distance * 100;
-            if(distance < 1){
+            Log.println(Log.INFO,"","hellomother"+String.valueOf(distance));
+            //distance = distance * 100;
+            if(distance < 145.029){
                 option1count ++;
+                Log.println(Log.INFO,"","helloFuckerR"+Integer.toString(option1count));
             }
         }
         for(int count = 0; count < whitelist.size(); count++){
@@ -360,12 +365,14 @@ public class QuestionDetailActivity extends Activity {
             x2 = whitelist.get(count).latitude;
             y2 = whitelist.get(count).longitude;
             distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
-            distance = distance * 100;
-            if(distance < 1){
+            //distance = distance * 100;
+            if(distance < 145.029){
                 option2count ++;
+                Log.println(Log.INFO,"","helloFuckerW"+ Integer.toString(option2count));
             }
         }
-
+        tvOption1.setText(Integer.toString(option1count));
+        tvOption2.setText(Integer.toString(option2count));
     }
 
     @Override
