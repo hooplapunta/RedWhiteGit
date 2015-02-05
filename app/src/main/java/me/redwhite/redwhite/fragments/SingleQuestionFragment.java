@@ -313,7 +313,7 @@ public class SingleQuestionFragment extends Fragment
 
                 final ScrollView scroll = new ScrollView(getActivity());
                 scroll.setBackgroundColor(getResources().getColor(android.R.color.transparent));
-                scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 490));
+                scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
                 final LinearLayout lis = new LinearLayout(getActivity());
                 lis.setOrientation(LinearLayout.VERTICAL);
@@ -741,11 +741,6 @@ public class SingleQuestionFragment extends Fragment
                     iv.setImageBitmap(bitmap);
 
                     layout.addView(iv);
-
-//                ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//                imageBitmap.compress(Bitmap.CompressFormat.JPEG, 100 /*ignored for PNG*/, bos);
-//                byte[] bitmapdata = bos.toByteArray();
-//                ByteArrayInputStream bs = new ByteArrayInputStream(bitmapdata);
 
                     File file = new File(mCurrentPhotoPath);
                     FileInputStream fileInputStream = new FileInputStream(file);

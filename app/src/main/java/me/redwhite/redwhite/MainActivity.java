@@ -30,13 +30,14 @@ import me.redwhite.redwhite.fragments.NavigationDrawerFragment;
 import me.redwhite.redwhite.fragments.NewsfeedFragment;
 import me.redwhite.redwhite.fragments.OldNewsfeedFragment;
 import me.redwhite.redwhite.fragments.QuestDetailFragment;
+import me.redwhite.redwhite.fragments.QuestWebFragment;
 import me.redwhite.redwhite.fragments.QuestionDetailActivity;
 import me.redwhite.redwhite.fragments.SingleQuestionFragment;
 import me.redwhite.redwhite.models.User;
 
 
 public class MainActivity extends FragmentActivity
-        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener, SingleQuestionFragment.OnFragmentInteractionListener, QuestDetailFragment.OnFragmentInteractionListener {
+        implements NewsfeedFragment.OnFragmentInteractionListener, NavigationDrawerFragment.NavigationDrawerCallbacks, OldNewsfeedFragment.OnFragmentInteractionListener, BrowseQuestionsFragment.OnFragmentInteractionListener, BrowseCommunityFragment.OnFragmentInteractionListener, BrowseQuestionsListFragment.OnFragmentInteractionListener, SingleQuestionFragment.OnFragmentInteractionListener, QuestDetailFragment.OnFragmentInteractionListener, QuestWebFragment.OnFragmentInteractionListener {
 
     /**
      * Fragment managing the behaviors, interactions and presentation of the navigation drawer.
@@ -151,7 +152,9 @@ public class MainActivity extends FragmentActivity
         // update the main content by replacing fragments
         FragmentManager fragmentManager = getFragmentManager();
 
-        Fragment nextFragment;
+        Fragment nextFragment = null;
+
+        boolean goToFragment = true;
 
         switch (position)
         {
@@ -169,16 +172,24 @@ public class MainActivity extends FragmentActivity
                 nextFragment = QuestDetailFragment.newInstance(null, null);
                 break;
             case 4:
-                nextFragment = OldNewsfeedFragment.newInstance(null, null);
+                nextFragment = QuestWebFragment.newInstance(null, null);
+                break;
+            case 5:
+                goToFragment = false;
+                Intent myIntent = new Intent(getApplicationContext(),SettingsActivity.class);
+                startActivity(myIntent);
                 break;
             default:
                 return;
         }
 
-        fragmentManager.beginTransaction()
-                // TODO: Update this line to navigate to defined fragments
-                .replace(R.id.container, nextFragment)
-                .commit();
+        if(goToFragment)
+        {
+            fragmentManager.beginTransaction()
+                    // TODO: Update this line to navigate to defined fragments
+                    .replace(R.id.container, nextFragment)
+                    .commit();
+        }
     }
 
     // FRAGMENT INTERACTIONS LISTENER

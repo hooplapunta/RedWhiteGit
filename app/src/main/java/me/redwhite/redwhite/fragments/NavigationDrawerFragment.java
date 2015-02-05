@@ -111,6 +111,7 @@ public class NavigationDrawerFragment extends Fragment {
                         "Questions for You",
                         "Explore Communities",
                         "Explore Quests",
+                        "Explore Quests (Web)",
                         "Settings"
                 }));
         mDrawerListView.setItemChecked(mCurrentSelectedPosition, true);

@@ -10,6 +10,7 @@ import android.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -36,8 +37,14 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import me.redwhite.redwhite.R;
@@ -47,6 +54,8 @@ import me.redwhite.redwhite.models.QuestQuestion;
 import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.models.User;
 import me.redwhite.redwhite.utils.CacheFragmentStatePagerAdapter;
+import me.redwhite.redwhite.utils.HttpConnection;
+import me.redwhite.redwhite.utils.PathJSONParser;
 import me.redwhite.redwhite.utils.SlidingTabLayout;
 
 /**
@@ -79,6 +88,11 @@ public class QuestDetailFragment extends Fragment {
     private GoogleMap gMap;
 
     private boolean listViewActive;
+
+    private static final LatLng LOWER_MANHATTAN = new LatLng(40.722543,
+            -73.998585);
+    private static final LatLng BROOKLYN_BRIDGE = new LatLng(40.7057, -73.9964);
+    private static final LatLng WALL_STREET = new LatLng(40.7064, -74.0094);
 
     /**
      * Use this factory method to create a new instance of
@@ -149,9 +163,37 @@ public class QuestDetailFragment extends Fragment {
                 googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                     @Override
                     public void onInfoWindowClick(Marker marker) {
+                        final FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutQuestions);
+                        final MapView mapView = (MapView) getActivity().findViewById(R.id.mapView);
+                        final FrameLayout pagerContainer = (FrameLayout) getActivity().findViewById(R.id.pagerContainer);
+                        final LinearLayout header = (LinearLayout) getActivity().findViewById(R.id.header);
 
+                        Animation animation = new AlphaAnimation(0.0f, 1.0f);
+                        animation.setFillAfter(true);
+                        animation.setDuration(350);
+                        animation.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                                pagerContainer.bringToFront();
+                                header.bringToFront();
+                                listViewActive = !listViewActive;
+                            }
+
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+
+                            }
+
+                            @Override
+                            public void onAnimationRepeat(Animation animation) {
+
+                            }
+                        });
+                        pagerContainer.startAnimation(animation);
                     }
                 });
+
+
             }
         });
 
@@ -172,20 +214,86 @@ public class QuestDetailFragment extends Fragment {
 
         //TODO: need to pickup the quest from an earlier screen
         final Quest quest = new Quest();
-        ArrayList<QuestQuestion> qqlist = new ArrayList<QuestQuestion>();
-        qqlist.add(new QuestQuestion("1", 1.298721, 103.847431));
-        //qqlist.add(new QuestQuestion("2", 1.379978, 103.848772));
-        qqlist.add(new QuestQuestion("3", 1.303895, 103.831941));
-        qqlist.add(new QuestQuestion("4", 1.404349, 103.793023));
-        qqlist.add(new QuestQuestion("5", 1.253449, 103.818881));
-        qqlist.add(new QuestQuestion("somethingsomething", 1.25322, 103.82));
-        quest.setQuestions(qqlist);
+        String[] questions = {"1","2","3","4","5","somethingsomething"};
+        ArrayList<String> questionlist = new ArrayList<>(Arrays.asList(questions));
+        quest.setQuestions(questionlist);
 
         ActionBar actionBar = getActivity().getActionBar();
         actionBar.setTitle("THE QUEST TITLE");
 
         questionList = new ArrayList<Question>();
         titleList = new ArrayList<String>();
+
+        class ParserTask extends
+                AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+
+            @Override
+            protected List<List<HashMap<String, String>>> doInBackground(
+                    String... jsonData) {
+               Log.println(Log.INFO, "google map path with JSON:", jsonData[0]);
+                JSONObject jObject;
+                List<List<HashMap<String, String>>> routes = null;
+
+                try {
+                    jObject = new JSONObject(jsonData[0]);
+                    PathJSONParser parser = new PathJSONParser();
+                    routes = parser.parse(jObject);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return routes;
+            }
+
+            @Override
+            protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
+                ArrayList<LatLng> points = null;
+                PolylineOptions polyLineOptions = null;
+
+                // traversing through routes
+                for (int i = 0; i < routes.size(); i++) {
+                    points = new ArrayList<LatLng>();
+                    polyLineOptions = new PolylineOptions();
+                    List<HashMap<String, String>> path = routes.get(i);
+
+                    for (int j = 0; j < path.size(); j++) {
+                        HashMap<String, String> point = path.get(j);
+
+                        double lat = Double.parseDouble(point.get("lat"));
+                        double lng = Double.parseDouble(point.get("lng"));
+                        LatLng position = new LatLng(lat, lng);
+
+                        points.add(position);
+                    }
+
+                    polyLineOptions.addAll(points);
+                    polyLineOptions.width(12);
+                    polyLineOptions.color(Color.parseColor("#42A5F5"));
+                }
+
+                gMap.addPolyline(polyLineOptions);
+            }
+        }
+
+        class ReadTask extends AsyncTask<String, Void, String> {
+            @Override
+            protected String doInBackground(String... url) {
+                String data = "";
+                try {
+                    Log.println(Log.INFO, "google map requesting url:", url[0]);
+                    HttpConnection http = new HttpConnection();
+                    data = http.readUrl(url[0]);
+                } catch (Exception e) {
+                    Log.d("Background Task", e.toString());
+                }
+                return data;
+            }
+
+            @Override
+            protected void onPostExecute(String result) {
+                super.onPostExecute(result);
+                new ParserTask().execute(result);
+            }
+        }
 
         class RecommendedQuestionsTask extends AsyncTask<String, Boolean, ArrayList<Question>> {
             @Override
@@ -197,13 +305,14 @@ public class QuestDetailFragment extends Fragment {
             protected ArrayList<Question> doInBackground(String... communities) {
                 final ArrayList<Question> incoming = new ArrayList<Question>();
 
-                    for (final QuestQuestion qs : quest.getQuestions()) {
+                    for (int i=0; i<quest.getQuestions().size(); i++) {
                         //Log.println(Log.INFO, "Finding question: ", qs.question);
-                        Question.findNodeByKey(qs.getKey(), new ValueEventListener() {
+                        final String qs = quest.getQuestions().get(i);
+                        Question.findNodeByKey(qs, new ValueEventListener() {
                             @Override
                             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                Question q = Question.convertFromMap(qs.getKey(), (Map<String, Object>) dataSnapshot.getValue());
+                                Question q = Question.convertFromMap(qs, (Map<String, Object>) dataSnapshot.getValue());
 
                                 boolean questionExists = false;
                                 for (Question z : questionList) {
@@ -220,8 +329,40 @@ public class QuestDetailFragment extends Fragment {
                                         titleList.remove(0);
                                     }
 
+
                                     questionList.add(q);
                                     titleList.add("question");
+
+//                                    // how to ensure that order is maintained?
+//                                    // compare to original question list in quests
+//                                    if (questionList.size() == 0) {
+//
+//                                    } else {
+//                                        // there is at least one item in the list
+//                                        // check if it should be placed before or after the current item
+//
+//                                        // find the position of the question that should be before the current item
+//                                        String beforeKey = null;
+//                                        for (int i=0; i < quest.getQuestions().size(); i++)
+//                                        {
+//                                            String currentKey = quest.getQuestions().get(i);
+//                                            if (currentKey.equals(q.getKey())) {
+//                                                beforeKey = quest.getQuestions().get(i--);
+//
+//                                            }
+//                                        }
+//
+//
+//                                        for (int i=0; i < questionList.size(); i++)
+//                                        {
+//                                            // find the position of the current question
+//
+//                                            // find the position of the
+//
+//
+//                                        }
+//
+//                                    }
 
                                     //bughack to prevent crashing when reloading for this second time
                                     if (questionList.size() == 1) {
@@ -233,6 +374,12 @@ public class QuestDetailFragment extends Fragment {
                                             .title(q.getQuestion())
                                             .snippet("asked by " + q.getCreated_username())
                                             .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
+
+                                    if (questionList.size() > 4) {
+                                        String url = getMapsApiDirectionsUrl();
+                                        ReadTask downloadTask = new ReadTask();
+                                        downloadTask.execute(url);
+                                    }
                                 }
 
                                 navigationAdapter = new NavigationAdapter(((FragmentActivity) getActivity()).getSupportFragmentManager(), questionList, titleList, u);
@@ -254,9 +401,6 @@ public class QuestDetailFragment extends Fragment {
                             }
                         });
                     }
-
-
-
                 return incoming;
             }
 
@@ -272,10 +416,43 @@ public class QuestDetailFragment extends Fragment {
             }
         }
 
+
+
         RecommendedQuestionsTask task = new RecommendedQuestionsTask();
         task.execute(u.get_communities_joined().toArray(new String[]{}));
-
     }
+
+    private void addMarkers() {
+        if (gMap != null) {
+            gMap.addMarker(new MarkerOptions().position(BROOKLYN_BRIDGE)
+                    .title("First Point"));
+            gMap.addMarker(new MarkerOptions().position(LOWER_MANHATTAN)
+                    .title("Second Point"));
+            gMap.addMarker(new MarkerOptions().position(WALL_STREET)
+                    .title("Third Point"));
+        }
+    }
+
+    private String getMapsApiDirectionsUrl() {
+
+        String origin = "origin=" + questionList.get(0).get_location().getLat() +"," + questionList.get(0).get_location().getLng();
+        String destination = "destination=" +questionList.get(questionList.size()-1).get_location().getLat() +"," +questionList.get(questionList.size()-1).get_location().getLng();
+
+        String waypoints = "waypoints=optimize:false|";
+        for(int i=1; i < questionList.size()-1; i++) {
+            waypoints += questionList.get(i).get_location().getLat() +"," + questionList.get(i).get_location().getLng();
+            waypoints += "|";
+        }
+        waypoints = waypoints.substring(0, waypoints.length()-1);
+
+        String sensor = "sensor=false";
+        String params = waypoints + "&" + sensor;
+        String output = "json";
+        String url = "https://maps.googleapis.com/maps/api/directions/"
+                + output + "?" +origin +"&" +destination +"&" + params +"&key=AIzaSyCIqH10fDisGK7uC7TBWec6kqLL_e8VdeI";
+        return url;
+    }
+
 
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri) {
@@ -399,8 +576,10 @@ public class QuestDetailFragment extends Fragment {
 
         if (item.getItemId() == R.id.menuShowNearby) {
 
-            final FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutBrowseQuestions);
-            ListView listViewQuestions = (ListView) getActivity().findViewById(R.id.listViewQuestions);
+            final FrameLayout frameLayout = (FrameLayout) getActivity().findViewById(R.id.frameLayoutQuestions);
+            final MapView mapView = (MapView) getActivity().findViewById(R.id.mapView);
+            final FrameLayout pagerContainer = (FrameLayout) getActivity().findViewById(R.id.pagerContainer);
+            final LinearLayout header = (LinearLayout) getActivity().findViewById(R.id.header);
 
             if(listViewActive){
                 Animation animation = new AlphaAnimation(1.0f, 0.0f);
@@ -414,8 +593,8 @@ public class QuestDetailFragment extends Fragment {
 
                     @Override
                     public void onAnimationEnd(Animation animation) {
-                        View tempFrom = frameLayout.getChildAt(1);
-                        frameLayout.bringChildToFront(tempFrom);
+                        mapView.bringToFront();
+                        listViewActive = !listViewActive;
                     }
 
                     @Override
@@ -423,8 +602,8 @@ public class QuestDetailFragment extends Fragment {
 
                     }
                 });
-                listViewQuestions.startAnimation(animation);
-                item.setTitle("Show All");
+                pagerContainer.startAnimation(animation);
+                item.setTitle("Show Questions");
             } else {
                 Animation animation = new AlphaAnimation(0.0f, 1.0f);
                 animation.setFillAfter(true);
@@ -432,8 +611,9 @@ public class QuestDetailFragment extends Fragment {
                 animation.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
-                        View tempFrom = frameLayout.getChildAt(1);
-                        frameLayout.bringChildToFront(tempFrom);
+                        pagerContainer.bringToFront();
+                        header.bringToFront();
+                        listViewActive = !listViewActive;
                     }
 
                     @Override
@@ -446,11 +626,9 @@ public class QuestDetailFragment extends Fragment {
 
                     }
                 });
-                listViewQuestions.startAnimation(animation);
-                item.setTitle("Show Nearby");
+                pagerContainer.startAnimation(animation);
+                item.setTitle("Show Map");
             }
-
-            listViewActive = !listViewActive;
 
             return true;
         }

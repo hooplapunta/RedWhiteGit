@@ -19,7 +19,7 @@ public class Quest implements FirebaseNode {
     String shortname;
     long start_datetime;
 
-    ArrayList<QuestQuestion> questions;
+    ArrayList<String> questions;
     ArrayList<QuestUser> users;
 
     public String getDescription() {
@@ -78,11 +78,11 @@ public class Quest implements FirebaseNode {
         this.start_datetime = start_datetime;
     }
 
-    public ArrayList<QuestQuestion> getQuestions() {
+    public ArrayList<String> getQuestions() {
         return questions;
     }
 
-    public void setQuestions(ArrayList<QuestQuestion> questions) {
+    public void setQuestions(ArrayList<String> questions) {
         this.questions = questions;
     }
 
@@ -97,7 +97,7 @@ public class Quest implements FirebaseNode {
     public Quest() {
     }
 
-    public Quest(ArrayList<QuestUser> users, String description, long end_datetime, String imageurl, String name, boolean order_enforced, String shortname, long start_datetime, ArrayList<QuestQuestion> questions) {
+    public Quest(ArrayList<QuestUser> users, String description, long end_datetime, String imageurl, String name, boolean order_enforced, String shortname, long start_datetime, ArrayList<String> questions) {
         this.users = users;
         this.description = description;
         this.end_datetime = end_datetime;

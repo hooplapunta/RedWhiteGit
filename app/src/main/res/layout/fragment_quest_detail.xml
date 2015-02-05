@@ -1,7 +1,9 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="me.redwhite.redwhite.fragments.QuestDetailFragment">
+    tools:context="me.redwhite.redwhite.fragments.QuestDetailFragment"
+    android:id="@+id/frameLayoutQuestions"
+    >
 
     <com.google.android.gms.maps.MapView
         android:id="@+id/mapView"
@@ -10,6 +12,7 @@
         android:elevation="0dp"/>
 
     <FrameLayout
+        android:id="@+id/pagerContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingTop="24dp">
