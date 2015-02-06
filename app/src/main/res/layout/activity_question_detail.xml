@@ -48,13 +48,19 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <LinearLayout
+            <RelativeLayout
                 android:id="@+id/chart"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="500dp"
+                android:layout_below="@+id/btn_Buffer"
                 android:layout_weight="1"
-                android:orientation="horizontal"></LinearLayout>
+                android:orientation="vertical">
+                <TextView
+                    android:text="KNN DOG"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
+                </RelativeLayout>
         </LinearLayout>
 
     </FrameLayout>

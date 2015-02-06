@@ -16,6 +16,7 @@ import android.view.animation.Animation;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.firebase.client.DataSnapshot;
@@ -121,7 +122,7 @@ public class QuestionDetailActivity extends Activity {
                     public void onClick(View v) {
 
                         doBuffer();
-                        setUpOptionChart();
+
 
                         Log.println(Log.INFO,"","pass button");
 
@@ -317,7 +318,8 @@ public class QuestionDetailActivity extends Activity {
 
                     }
                 });
-                totalOptionCount = option1count + option2count;
+                //totalOptionCount = option1count + option2count;
+              //  Log.println(Log.INFO,"FUCK","hellocb"+String.valueOf(totalOptionCount));
 
 
             }
@@ -348,6 +350,8 @@ public class QuestionDetailActivity extends Activity {
                 Log.println(Log.INFO, "", "pass");
             }
         });
+
+
     }
 
     private void showBuffer(LatLng point){
@@ -384,25 +388,29 @@ public class QuestionDetailActivity extends Activity {
         }
         tvOption1.setText(Integer.toString(option1count));
         tvOption2.setText(Integer.toString(option2count));
+        setUpOptionChart();
     }
 
     private void setUpOptionChart(){
-        int percentage = 0;
+        double percentage = 0;
         int totalOptions = 0;
         String formatOptionStr;
 
         int[] colors = {Color.rgb(250, 88, 130), Color.rgb(46, 154, 254)};
-        totalOptions= totalOptionCount;
+       // totalOptions= totalOptionCount;
         CategorySeries distributionSeries = new CategorySeries(" Options ");
 
         ArrayList<Integer> percentArray = new ArrayList<Integer>();
         percentArray.add(option1count);
+
         percentArray.add(option2count);
         totalOptions = option1count + option2count;
         for(int i =0; i < percentArray.size();i++){
 
+            Log.println(Log.INFO,"PERCENTAGE TOTAL",String.valueOf(percentArray.get(i)));
             Log.println(Log.INFO,"PERCENTAGE TOTAL",String.valueOf(totalOptions));
-            percentage = (percentArray.get(i)/ totalOptions * 100);
+            percentage = Math.round(((double) percentArray.get(i) / (double) totalOptions) * (double) 100);
+
             Log.println(Log.INFO,"PERCENTAGE",String.valueOf(percentage));
             distributionSeries.add("" + "" +percentage+"%",totalOptions);
 
@@ -430,7 +438,7 @@ public class QuestionDetailActivity extends Activity {
         defaultRenderer.setMargins(new int[] { 50, 25, 20, 20 });
 
         // Get the component from XML file
-        LinearLayout chartContainer = (LinearLayout) findViewById(R.id.chart);
+        RelativeLayout chartContainer = (RelativeLayout) findViewById(R.id.chart);
 
         // Creating a Pie Chart
         chartOption = ChartFactory.getPieChartView(QuestionDetailActivity.this,
