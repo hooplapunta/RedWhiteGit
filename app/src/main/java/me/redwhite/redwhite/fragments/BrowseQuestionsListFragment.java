@@ -421,7 +421,8 @@ public class BrowseQuestionsListFragment extends Fragment {
             // retrieve the question
 
             Question q = questions.get(position);
-            android.support.v4.app.Fragment f = SingleQuestionFragment.newInstance(q, user);
+            //TODO: update this to refer from a completeList
+            android.support.v4.app.Fragment f = SingleQuestionFragment.newInstance(q, user, false, false, null);
 
             return f;
             // assign new instance of fragment

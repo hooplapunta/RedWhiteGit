@@ -2,6 +2,9 @@ package me.redwhite.redwhite.models;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firebase.client.Firebase;
+import com.firebase.client.ValueEventListener;
+
+import org.parceler.Parcel;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,6 +13,7 @@ import java.util.Map;
 /**
  * Created by Rong Kang on 2/4/2015.
  */
+@Parcel
 public class Quest implements FirebaseNode {
     String description;
     long end_datetime;
@@ -123,5 +127,10 @@ public class Quest implements FirebaseNode {
         m.put(questionKey, true);
 
         ref.updateChildren(m);
+    }
+
+    public static void listenToOnlineQuestUsers(String questKey, ValueEventListener listener) {
+        Firebase ref = new Firebase(FIREBASEPATH + "quest/" +questKey +"/users/");
+        ref.orderByChild("online").equalTo(true).addValueEventListener(listener);
     }
 }

@@ -53,6 +53,15 @@
             android:layout_marginBottom="16dp"
             />
 
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/questionControls"
+            >
+
+            </LinearLayout>
+
         <!-- Question controls go here -->
 
     </LinearLayout>

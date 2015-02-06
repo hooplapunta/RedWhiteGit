@@ -6,8 +6,10 @@ import android.app.ActionBar;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,6 +35,8 @@ import me.redwhite.redwhite.fragments.QuestDetailFragment;
 import me.redwhite.redwhite.fragments.QuestWebFragment;
 import me.redwhite.redwhite.fragments.QuestionDetailActivity;
 import me.redwhite.redwhite.fragments.SingleQuestionFragment;
+import me.redwhite.redwhite.models.Quest;
+import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.models.User;
 
 
@@ -75,7 +79,6 @@ public class MainActivity extends FragmentActivity
     }
 
     private void loadActivityOnAuth() {
-
         // Set up the drawer.
         mNavigationDrawerFragment.setUp(
                 R.id.navigation_drawer,
@@ -91,7 +94,7 @@ public class MainActivity extends FragmentActivity
     private void loadLoggedInUser() {
 
         //TODO: Check for saved user in shared preferences key?
-        if(User.wasLoggedIn())
+        if(/*User.wasLoggedIn()*/ false)
         {
             // reload from sharedprefs
 
@@ -99,12 +102,15 @@ public class MainActivity extends FragmentActivity
             Toast.makeText(getApplicationContext(), User.getAuth().toString(), Toast.LENGTH_LONG).show();
 
         } else {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            final String username = sp.getString("example_text", "bam").toLowerCase();
+
             // TODO: reload username and password from shared preference
-            User.loginToFirebase("ron@hotmail.com", "password", new Firebase.AuthResultHandler() {
+            User.loginToFirebase(username+"@hotmail.com", "password", new Firebase.AuthResultHandler() {
                 @Override
                 public void onAuthenticated(AuthData authData) {
 
-                    User.findNodeByKey("RON", new ValueEventListener() {
+                    User.findNodeByKey(username.toUpperCase(), new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -118,7 +124,7 @@ public class MainActivity extends FragmentActivity
 
                                 // call the activity to continue loading
                                 loadActivityOnAuth();
-                                Toast.makeText(getApplicationContext(), user.toString(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Logged in as " +user.getKey(), Toast.LENGTH_LONG).show();
                             }
                             else
                             {
@@ -155,6 +161,7 @@ public class MainActivity extends FragmentActivity
         Fragment nextFragment = null;
 
         boolean goToFragment = true;
+        String tag = "";
 
         switch (position)
         {
@@ -170,6 +177,7 @@ public class MainActivity extends FragmentActivity
             case 3:
                 //TODO: Update
                 nextFragment = QuestDetailFragment.newInstance(null, null);
+                tag = "QuestDetailFragment";
                 break;
             case 4:
                 nextFragment = QuestWebFragment.newInstance(null, null);
@@ -187,7 +195,7 @@ public class MainActivity extends FragmentActivity
         {
             fragmentManager.beginTransaction()
                     // TODO: Update this line to navigate to defined fragments
-                    .replace(R.id.container, nextFragment)
+                    .replace(R.id.container, nextFragment, tag)
                     .commit();
         }
     }
@@ -198,6 +206,12 @@ public class MainActivity extends FragmentActivity
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    public void completeQuestion(Question q, User u, boolean isComplete, boolean isQuest, Quest qu) {
+        QuestDetailFragment fragment = (QuestDetailFragment) getFragmentManager().findFragmentByTag("QuestDetailFragment");
+        fragment.completeQuestion(q, u, isComplete, isQuest, qu);
     }
 
     // For others

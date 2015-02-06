@@ -1,11 +1,17 @@
 package me.redwhite.redwhite.models;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firebase.client.Firebase;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Created by Rong Kang on 2/4/2015.
  */
 public class QuestUser implements FirebaseNode {
+    String userKey;
     boolean complete;
     long complete_datetime;
     long join_datetime;
@@ -14,6 +20,14 @@ public class QuestUser implements FirebaseNode {
     boolean online;
 
     Map<String, Boolean> complete_questions;
+
+    public String getUserKey() {
+        return userKey;
+    }
+
+    public void setUserKey(String userKey) {
+        this.userKey = userKey;
+    }
 
     public boolean isComplete() {
         return complete;
@@ -74,7 +88,8 @@ public class QuestUser implements FirebaseNode {
     public QuestUser() {
     }
 
-    public QuestUser(boolean complete, long complete_datetime, long join_datetime, double lat, double lng, boolean online, Map<String, Boolean> complete_questions) {
+    public QuestUser(String userKey, boolean complete, long complete_datetime, long join_datetime, double lat, double lng, boolean online, Map<String, Boolean> complete_questions) {
+        this.userKey = userKey;
         this.complete = complete;
         this.complete_datetime = complete_datetime;
         this.join_datetime = join_datetime;
@@ -82,5 +97,54 @@ public class QuestUser implements FirebaseNode {
         this.lng = lng;
         this.online = online;
         this.complete_questions = complete_questions;
+    }
+
+    public QuestUser(String userKey, boolean complete, long complete_datetime, long join_datetime, double lat, double lng, boolean online, HashMap<String, Object> complete_questions) {
+        this.userKey = userKey;
+        this.complete = complete;
+        this.complete_datetime = complete_datetime;
+        this.join_datetime = join_datetime;
+        this.lat = lat;
+        this.lng = lng;
+        this.online = online;
+        this.complete_questions = new HashMap(complete_questions);
+    }
+
+    public static QuestUser convertFromMap(String key, Map<String, Object> map)
+    {
+        return new QuestUser(
+                key,
+                (boolean)map.get("complete"),
+                (int)(long)map.get("complete_datetime"),
+                (int)(long)map.get("joined_datetime"),
+                (double)map.get("lat"),
+                (double)map.get("lng"),
+                (boolean)map.get("online"),
+                (HashMap<String,Object>)map.get("complete_questions")
+        );
+    }
+
+    public static ArrayList<QuestUser> convertListFromMap(Map<String, Object> map)
+    {
+        ArrayList<QuestUser> c = new ArrayList<QuestUser>();
+
+        for (Map.Entry<String, Object> e : map.entrySet()) {
+            c.add(
+                    QuestUser.convertFromMap(e.getKey(), (Map)e.getValue())
+            );
+        }
+
+        return c;
+    }
+
+    public static void updateUserLocation(String questKey, String userKey, double latitude, double longitude) {
+        Firebase ref = new Firebase(FIREBASEPATH + "quest/" +questKey +"/users/" +userKey);
+
+        Map<String, Object> online = new HashMap<String, Object>();
+        online.put("online", true);
+        online.put("lat", latitude);
+        online.put("lng", longitude);
+
+        ref.updateChildren(online);
     }
 }
