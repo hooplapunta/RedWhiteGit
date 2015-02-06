@@ -35,6 +35,12 @@ import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
 
+import org.achartengine.ChartFactory;
+import org.achartengine.GraphicalView;
+import org.achartengine.model.CategorySeries;
+import org.achartengine.renderer.DefaultRenderer;
+import org.achartengine.renderer.SimpleSeriesRenderer;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +50,8 @@ import me.redwhite.redwhite.SingleProfileActivity;
 import me.redwhite.redwhite.models.Question;
 import me.redwhite.redwhite.models.QuestionAnswer;
 
-
+//import chart
+import org.achartengine.model.SeriesSelection;
 public class QuestionDetailActivity extends Activity {
     TextView welcome;
     TextView questionTxt;
@@ -54,6 +61,7 @@ public class QuestionDetailActivity extends Activity {
 
     int option1count;
     int option2count;
+    int totalOptionCount;
 
 
     private MapView mMapView;
@@ -68,7 +76,7 @@ public class QuestionDetailActivity extends Activity {
     Question question;
 
     Button buttonBuffer;
-
+    private GraphicalView chartOption;
 
     List<LatLng> redList = new ArrayList<LatLng>();
     List<LatLng> whitelist = new ArrayList<LatLng>();
@@ -113,6 +121,7 @@ public class QuestionDetailActivity extends Activity {
                     public void onClick(View v) {
 
                         doBuffer();
+                        setUpOptionChart();
 
                         Log.println(Log.INFO,"","pass button");
 
@@ -308,6 +317,8 @@ public class QuestionDetailActivity extends Activity {
 
                     }
                 });
+                totalOptionCount = option1count + option2count;
+
 
             }
 
@@ -374,6 +385,99 @@ public class QuestionDetailActivity extends Activity {
         tvOption1.setText(Integer.toString(option1count));
         tvOption2.setText(Integer.toString(option2count));
     }
+
+    private void setUpOptionChart(){
+        int percentage = 0;
+        int totalOptions = 0;
+        String formatOptionStr;
+
+        int[] colors = {Color.rgb(250, 88, 130), Color.rgb(46, 154, 254)};
+        totalOptions= totalOptionCount;
+        CategorySeries distributionSeries = new CategorySeries(" Options ");
+
+        ArrayList<Integer> percentArray = new ArrayList<Integer>();
+        percentArray.add(option1count);
+        percentArray.add(option2count);
+        totalOptions = option1count + option2count;
+        for(int i =0; i < percentArray.size();i++){
+
+            Log.println(Log.INFO,"PERCENTAGE TOTAL",String.valueOf(totalOptions));
+            percentage = (percentArray.get(i)/ totalOptions * 100);
+            Log.println(Log.INFO,"PERCENTAGE",String.valueOf(percentage));
+            distributionSeries.add("" + "" +percentage+"%",totalOptions);
+
+
+            Log.println(Log.INFO,"PERCENTAGE",String.valueOf(percentage));
+        }
+
+        DefaultRenderer defaultRenderer = new DefaultRenderer();
+        for (int j = 0; j < percentArray.size(); j++) {
+            SimpleSeriesRenderer seriesRenderer = new SimpleSeriesRenderer();
+            seriesRenderer.setColor(colors[j]);
+            //seriesRenderer.setDisplayChartValues(true);
+            // Adding a renderer for a slice
+            defaultRenderer.addSeriesRenderer(seriesRenderer);
+        }
+
+        // Customize default renderer
+        defaultRenderer.setChartTitle(" Event Population by Gender ");
+        defaultRenderer.setChartTitleTextSize(18);
+        defaultRenderer.setLabelsTextSize(13);
+        defaultRenderer.setLabelsColor(Color.rgb(42, 47, 49));
+        defaultRenderer.setZoomButtonsVisible(false);
+        defaultRenderer.setShowLegend(true);
+        defaultRenderer.setInScroll(true);
+        defaultRenderer.setMargins(new int[] { 50, 25, 20, 20 });
+
+        // Get the component from XML file
+        LinearLayout chartContainer = (LinearLayout) findViewById(R.id.chart);
+
+        // Creating a Pie Chart
+        chartOption = ChartFactory.getPieChartView(QuestionDetailActivity.this,
+                distributionSeries, defaultRenderer);
+        defaultRenderer.setClickEnabled(true);
+        defaultRenderer.setSelectableBuffer(10);
+        /*chartOption.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                SeriesSelection seriesSelection = chartOption
+                        .getCurrentSeriesAndPoint();
+                if (seriesSelection != null) {
+                    // Getting the name of the clicked slice
+                    int seriesIndex = seriesSelection.getPointIndex();
+                    String selectedSeries = "";
+                    for (int count = 0; count < genderAmtList.size(); count++) {
+                        if (genderAmtList.get(seriesIndex).getGender()
+                                .equals("M")) {
+                            selectedSeries = "Male";
+                        } else {
+                            selectedSeries = "Female";
+                        }
+                    }
+
+                    // Getting the value of the clicked slice
+                    double value = seriesSelection.getXValue();
+
+                    // Displaying the message
+                    Toast.makeText(
+                            getApplicationContext(),
+                            selectedSeries + " : " + Math.round(value)
+                                    + " person(s)", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+        */
+        // Adding the Pie Chart to the LinearLayout
+        chartContainer.addView(chartOption);
+
+    }
+
+
+
+
+
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
