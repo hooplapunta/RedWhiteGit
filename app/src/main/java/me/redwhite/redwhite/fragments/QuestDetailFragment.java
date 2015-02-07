@@ -49,6 +49,7 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.maps.android.clustering.ClusterManager;
 
 import org.json.JSONObject;
 
@@ -64,10 +65,14 @@ import me.redwhite.redwhite.models.Quest;
 import me.redwhite.redwhite.models.QuestQuestion;
 import me.redwhite.redwhite.models.QuestUser;
 import me.redwhite.redwhite.models.Question;
+import me.redwhite.redwhite.models.QuestionAnswer;
+import me.redwhite.redwhite.models.QuestionOption;
 import me.redwhite.redwhite.models.User;
 import me.redwhite.redwhite.utils.CacheFragmentStatePagerAdapter;
 import me.redwhite.redwhite.utils.HttpConnection;
 import me.redwhite.redwhite.utils.PathJSONParser;
+import me.redwhite.redwhite.utils.QuestionClusterRenderer;
+import me.redwhite.redwhite.utils.QuestionMarker;
 import me.redwhite.redwhite.utils.SlidingTabLayout;
 
 /**
@@ -101,9 +106,12 @@ public class QuestDetailFragment extends Fragment
     ArrayList<Boolean> completeList = new ArrayList<Boolean>();
     ArrayList<QuestUser> userList = new ArrayList<QuestUser>();
 
+    ArrayList<Marker> userMarkerList = new ArrayList<Marker>();
+
     private MapView mMapView;
     private GoogleMap gMap;
     private Polyline currentLine;
+    private ClusterManager<QuestionMarker> questionCluster;
 
     private boolean listViewActive;
 
@@ -181,6 +189,17 @@ public class QuestDetailFragment extends Fragment
                 googleMap.animateCamera(CameraUpdateFactory
                         .newCameraPosition(cameraPosition));
 
+                // Initialize the manager with the context and the map.
+                // (Activity extends context, so we can pass 'this' in the constructor.)
+                questionCluster = new ClusterManager<QuestionMarker>(getActivity(), googleMap);
+
+                // Point the map's listeners at the listeners implemented by the cluster
+                // manager.
+                googleMap.setOnCameraChangeListener(questionCluster);
+                googleMap.setOnMarkerClickListener(questionCluster);
+
+                questionCluster.setRenderer(new QuestionClusterRenderer(getActivity().getApplicationContext(), googleMap, questionCluster));
+
                 googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                     @Override
                     public void onInfoWindowClick(Marker marker) {
@@ -235,10 +254,16 @@ public class QuestDetailFragment extends Fragment
 
         //TODO: need to pickup the quest from an earlier screen
         final Quest quest = new Quest();
-        String[] questions = {"1","2","3","4","5","somethingsomething"};
+        String[] questions = {"1","2","3","4","5","somethingsomething", "anotherquestion"};
         ArrayList<String> questionlist = new ArrayList<>(Arrays.asList(questions));
         quest.setQuestions(questionlist);
         quest.setShortname("orchardps2015");
+
+        QuestUser qu = new QuestUser("BAA", false, 1423295887, 1423295887, 1.379978, 103.848772, true, new HashMap<String, Boolean>());
+        qu.getComplete_questions().put("somethingsomething", true);
+
+        quest.setUsers(new ArrayList<QuestUser>());
+        quest.getUsers().add(qu);
 
         this.quest = quest;
 
@@ -247,78 +272,6 @@ public class QuestDetailFragment extends Fragment
 
         questionList = new ArrayList<Question>();
         titleList = new ArrayList<String>();
-
-        class ParserTask extends
-                AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
-
-            @Override
-            protected List<List<HashMap<String, String>>> doInBackground(
-                    String... jsonData) {
-               Log.println(Log.INFO, "google map path with JSON:", jsonData[0]);
-                JSONObject jObject;
-                List<List<HashMap<String, String>>> routes = null;
-
-                try {
-                    jObject = new JSONObject(jsonData[0]);
-                    PathJSONParser parser = new PathJSONParser();
-                    routes = parser.parse(jObject);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return routes;
-            }
-
-            @Override
-            protected void onPostExecute(List<List<HashMap<String, String>>> routes) {
-                ArrayList<LatLng> points = null;
-                PolylineOptions polyLineOptions = null;
-
-                // traversing through routes
-                for (int i = 0; i < routes.size(); i++) {
-                    points = new ArrayList<LatLng>();
-                    polyLineOptions = new PolylineOptions();
-                    List<HashMap<String, String>> path = routes.get(i);
-
-                    for (int j = 0; j < path.size(); j++) {
-                        HashMap<String, String> point = path.get(j);
-
-                        double lat = Double.parseDouble(point.get("lat"));
-                        double lng = Double.parseDouble(point.get("lng"));
-                        LatLng position = new LatLng(lat, lng);
-
-                        points.add(position);
-                    }
-
-                    polyLineOptions.addAll(points);
-                    polyLineOptions.width(12);
-                    polyLineOptions.color(Color.parseColor("#42A5F5"));
-                }
-
-                Toast.makeText(getActivity(), "Redrawing original path.", Toast.LENGTH_SHORT).show();
-                currentLine =  gMap.addPolyline(polyLineOptions);
-            }
-        }
-
-        class ReadTask extends AsyncTask<String, Void, String> {
-            @Override
-            protected String doInBackground(String... url) {
-                String data = "";
-                try {
-                    Log.println(Log.INFO, "google map requesting url:", url[0]);
-                    HttpConnection http = new HttpConnection();
-                    data = http.readUrl(url[0]);
-                } catch (Exception e) {
-                    Log.d("Background Task", e.toString());
-                }
-                return data;
-            }
-
-            @Override
-            protected void onPostExecute(String result) {
-                super.onPostExecute(result);
-                new ParserTask().execute(result);
-            }
-        }
 
         class RecommendedQuestionsTask extends AsyncTask<String, Boolean, ArrayList<Question>> {
             @Override
@@ -355,41 +308,25 @@ public class QuestDetailFragment extends Fragment
                                         completeList.remove(0);
                                     }
 
-
                                     questionList.add(q);
                                     titleList.add("question");
-                                    completeList.add(false);
 
-//                                    // how to ensure that order is maintained?
-//                                    // compare to original question list in quests
-//                                    if (questionList.size() == 0) {
-//
-//                                    } else {
-//                                        // there is at least one item in the list
-//                                        // check if it should be placed before or after the current item
-//
-//                                        // find the position of the question that should be before the current item
-//                                        String beforeKey = null;
-//                                        for (int i=0; i < quest.getQuestions().size(); i++)
-//                                        {
-//                                            String currentKey = quest.getQuestions().get(i);
-//                                            if (currentKey.equals(q.getKey())) {
-//                                                beforeKey = quest.getQuestions().get(i--);
-//
-//                                            }
-//                                        }
-//
-//
-//                                        for (int i=0; i < questionList.size(); i++)
-//                                        {
-//                                            // find the position of the current question
-//
-//                                            // find the position of the
-//
-//
-//                                        }
-//
-//                                    }
+                                    boolean userfound = false;
+                                    for(QuestUser qu : quest.getUsers()) {
+                                        if(qu.getUserKey() == u.getKey()) {
+                                            Boolean answered = qu.getComplete_questions().get(q.getKey());
+                                            if(answered != null) {
+                                                if(answered == true) {
+                                                    completeList.add(true);
+                                                    userfound = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if(!userfound) {
+                                        completeList.add(false);
+                                    }
 
                                     //bughack to prevent crashing when reloading for this second time
                                     if (questionList.size() == 1) {
@@ -398,15 +335,34 @@ public class QuestDetailFragment extends Fragment
                                         completeList.add(false);
                                     }
 
-                                    gMap.addMarker(new MarkerOptions()
-                                            .title(q.getQuestion())
-                                            .snippet("asked by " + q.getCreated_username())
-                                            .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
+                                    // figure out which color marker to show
+                                    // do this by counting the number of questions answers within the last hour
+                                    int markercolor = R.drawable.ic_crowdopsquestiongreensmall;
+                                    if(q.countLastHour() > 10) {
+                                        markercolor = R.drawable.ic_crowdopsquestionsmall;
+                                    } else if(q.countLastHour() >= 5) {
+                                        markercolor = R.drawable.ic_crowdopsquestionyellowsmall;
+                                    }
+
+                                    QuestionMarker qm = new QuestionMarker();
+                                    qm.setTitle(q.getQuestion());
+                                    qm.setSnippet(q.countLastHour() + " answers in the past hour");
+                                    qm.setIcon(BitmapDescriptorFactory.fromResource(markercolor));
+                                    qm.setmPosition(new LatLng(q.get_location().getLat(), q.get_location().getLng()));
+                                    questionCluster.addItem(qm);
+                                    questionCluster.cluster();
+
+//                                    gMap.addMarker(new MarkerOptions()
+//                                            .title(q.getQuestion())
+//                                            .snippet("asked by " + q.getCreated_username())
+//                                            .icon(BitmapDescriptorFactory.fromResource(markercolor))
+//                                            .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
 
                                     if (questionList.size() > 4) {
                                         redrawMap();
                                     }
                                 }
+                                questionCluster.cluster();
 
                                 navigationAdapter = new NavigationAdapter(((FragmentActivity) getActivity()).getSupportFragmentManager(), questionList, titleList, completeList, u);
                                 viewPager = (ViewPager) getActivity().findViewById(R.id.pager);
@@ -458,7 +414,7 @@ public class QuestDetailFragment extends Fragment
 
                 // redraw map
                 // API call called too fast
-                redrawMap();
+                redrawUsers();
             }
 
             @Override
@@ -469,18 +425,27 @@ public class QuestDetailFragment extends Fragment
     }
 
     private void redrawMap() {
-        gMap.clear();
-
         if (questionList.size() > 3) {
             String url = getMapsApiDirectionsUrl();
             ReadTask downloadTask = new ReadTask();
             downloadTask.execute(url);
         }
+    }
 
-        // redraw the locations
+    private void redrawUsers() {
+        // remove all existing users
+        if(userMarkerList != null) {
+            for(Marker m : userMarkerList) {
+                m.remove();
+            }
+
+            userMarkerList.clear();
+        }
+
+        // add them back to normal users
         for(QuestUser qu : userList) {
-            gMap.addMarker(new MarkerOptions().position(new LatLng(qu.getLat(), qu.getLng()))
-                    .title("Online User").snippet("Live Position").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)));
+            userMarkerList.add(gMap.addMarker(new MarkerOptions().position(new LatLng(qu.getLat(), qu.getLng()))
+                    .title(qu.getUserKey()).snippet("Online: " +qu.getCompletionPercentage(quest) +"%").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE))));
         }
     }
 
@@ -610,18 +575,37 @@ public class QuestDetailFragment extends Fragment
                 polyLineOptions.color(Color.parseColor("#42A5F5"));
             }
 
+            gMap.clear();
+            questionCluster.clearItems();
 
             for(Question q : questionList) {
-                gMap.addMarker(new MarkerOptions()
-                        .title(q.getQuestion())
-                        .snippet("asked by " + q.getCreated_username())
-                        .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
+                int markercolor = R.drawable.ic_crowdopsquestiongreensmall;
+                if(q.countLastHour() > 10) {
+                    markercolor = R.drawable.ic_crowdopsquestionsmall;
+                } else if(q.countLastHour() >= 5) {
+                    markercolor = R.drawable.ic_crowdopsquestionyellowsmall;
+                }
+
+                QuestionMarker qm = new QuestionMarker();
+                qm.setTitle(q.getQuestion());
+                qm.setSnippet(q.countLastHour() +" answers in the past hour");
+                qm.setIcon(BitmapDescriptorFactory.fromResource(markercolor));
+                qm.setmPosition(new LatLng(q.get_location().getLat(), q.get_location().getLng()));
+                questionCluster.addItem(qm);
+                questionCluster.cluster();
+
+//                gMap.addMarker(new MarkerOptions()
+//                        .title(q.getQuestion())
+//                        .snippet("asked by " + q.getCreated_username())
+//                        .icon(BitmapDescriptorFactory.fromResource(markercolor))
+//                        .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
             }
 
 
             currentLine = gMap.addPolyline(polyLineOptions);
-
+            questionCluster.cluster();
         }
+
     }
 
     class ReadTask extends AsyncTask<String, Void, String> {
@@ -837,10 +821,11 @@ public class QuestDetailFragment extends Fragment
     @Override
     public void onLocationChanged(Location location) {
         // tell the quest where are we
-        // TODO: update the user selected
-        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        final String username = sp.getString("example_text", "bam").toUpperCase();
-        QuestUser.updateUserLocation(quest.getShortname(), username, location.getLatitude(), location.getLongitude());
+        if (getActivity() != null) {
+            SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(getActivity());
+            final String username = sp.getString("example_text", "bam").toUpperCase();
+            QuestUser.updateUserLocation(quest.getShortname(), username, location.getLatitude(), location.getLongitude());
+        }
     }
 
 

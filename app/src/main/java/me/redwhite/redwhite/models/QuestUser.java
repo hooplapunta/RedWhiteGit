@@ -147,4 +147,8 @@ public class QuestUser implements FirebaseNode {
 
         ref.updateChildren(online);
     }
+
+    public int getCompletionPercentage(Quest quest) {
+        return (int)(((double)complete_questions.size()/(double)quest.getQuestions().size())*100d);
+    }
 }

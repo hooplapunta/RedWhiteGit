@@ -47,6 +47,8 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
@@ -106,10 +108,12 @@ public class SingleQuestionFragment extends Fragment
     private Location mLastLocation;
 
     private int cameraButtonId;
+    private int qrcodeButtonId;
     private String mCurrentPhotoPath;
 
     private View rootView;
     private LinearLayout rootLayout;
+    private ImageView qrcodeImage;
 
     /**
      * Use this factory method to create a new instance of
@@ -246,7 +250,20 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Your response was sent.", Toast.LENGTH_SHORT).show();
+
+                                                LayoutInflater tinflater = rootActivity.getLayoutInflater();
+                                                View toastlayout = tinflater.inflate(R.layout.toast_crowdops, (ViewGroup)rootActivity.findViewById(R.id.toastContainer));
+                                                TextView text = (TextView) toastlayout.findViewById(R.id.toastTitle);
+                                                text.setText("Question Complete!");
+                                                TextView subtext = (TextView) toastlayout.findViewById(R.id.toastSubTitle);
+                                                subtext.setText("+50 Ops Points, spend it on powerups to get ahead!");
+                                                Toast toast = new Toast(rootActivity);
+                                                toast.setGravity(Gravity.BOTTOM, 0, 0);
+                                                toast.setDuration(Toast.LENGTH_LONG);
+                                                toast.setView(toastlayout);
+                                                toast.show();
+
+                                                //Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
 
                                                 // disable current button
                                                 // display show answer button
@@ -328,7 +345,7 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Your response was sent.", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
 
                                                 // disable current button
                                                 // display show answer button
@@ -423,7 +440,7 @@ public class SingleQuestionFragment extends Fragment
                                                     isComplete = true;
                                                     isFirstComplete = true;
                                                     mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                    Toast.makeText(rootActivity, "Your response was sent.", Toast.LENGTH_SHORT).show();
+                                                    Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
 
                                                     // disable current button
                                                     // display show answer button
@@ -548,7 +565,7 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Your response was sent.", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
                                                 // disable current button
                                                 // display show answer button
 
@@ -624,7 +641,7 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Your response was sent.", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
                                                 // disable current button
                                                 // display show answer button
                                                 text.setEnabled(false);
@@ -704,7 +721,39 @@ public class SingleQuestionFragment extends Fragment
 
                                 layout.addView(camerabutton);
                                 break;
+                            case "qrcode":
+                                ImageView iv = new ImageView(rootActivity);
+                                iv.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 300));
+                                iv.setImageResource(R.drawable.ic_opscodered);
+                                qrcodeImage = iv;
+                                layout.addView(iv);
 
+                                Button qrbutton = new Button(rootActivity);
+                                qrbutton.setText("Scan Ops Code");
+                                qrbutton.setBackgroundColor(Color.parseColor("#F44336"));
+                                qrbutton.setTextColor(Color.WHITE);
+                                qrbutton.setElevation(2);
+                                qrbutton.setLayoutParams(buttonMargins);
+                                qrcodeButtonId = View.generateViewId();
+                                qrbutton.setId(qrcodeButtonId);
+                                qrbutton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+//                                        IntentIntegrator integrator = new IntentIntegrator(rootActivity);
+//                                        integrator.initiateScan();
+
+                                        Intent intent = new Intent(
+                                                "com.google.zxing.client.android.SCAN");
+                                        intent.putExtra("SCAN_FORMATS", "QR_CODE_MODE");
+                                        startActivityForResult(intent,
+                                                IntentIntegrator.REQUEST_CODE);
+
+                                    }
+                                });
+
+                                layout.addView(qrbutton);
+
+                                break;
                             default:
                                 break;
                         }
@@ -761,10 +810,11 @@ public class SingleQuestionFragment extends Fragment
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // photo action
         if(requestCode == 1337 && resultCode == Activity.RESULT_OK) {
 
             final LinearLayout layout = rootLayout;
-            final LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,110);
+            final LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110);
             narrowButtonMargins.setMargins(0, 12, 0, 12);
 
             final Button camerabutton = (Button) layout.findViewById(cameraButtonId);
@@ -789,14 +839,11 @@ public class SingleQuestionFragment extends Fragment
                             e.printStackTrace();
                         }
 
-                        if(map.size() != 0)
-                        {
+                        if (map.size() != 0) {
                             // send intent to question detail with new button
                             // abstract to standard method
                             return (String) map.get("url");
-                        }
-                        else
-                        {
+                        } else {
                             cancel(true);
                             return null;
                         }
@@ -812,18 +859,18 @@ public class SingleQuestionFragment extends Fragment
                                 "...",
                                 question.getQuestion(),
                                 s,
-                                System.currentTimeMillis()/1000,
+                                System.currentTimeMillis() / 1000,
                                 question.getKey()
                         );
 
                         QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(0).getKey(), qa);
-                        if(isQuest) {
+                        if (isQuest) {
                             Quest.completeQuestQuestion(quest.getShortname(), user.getKey(), question.getKey());
                         }
                         isComplete = true;
                         isFirstComplete = true;
                         mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                        Toast.makeText(rootActivity, "Your response was sent.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
 
                         // disable current button
                         // display show answer button
@@ -841,7 +888,7 @@ public class SingleQuestionFragment extends Fragment
                         rbutton.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
-                                Intent myIntent = new Intent(rootActivity,QuestionDetailActivity.class);
+                                Intent myIntent = new Intent(rootActivity, QuestionDetailActivity.class);
                                 myIntent.putExtra("username", user.getKey());
                                 myIntent.putExtra("question", question.getKey());
                                 startActivity(myIntent);
@@ -892,7 +939,78 @@ public class SingleQuestionFragment extends Fragment
             }
 
         } else {
-            super.onActivityResult(requestCode, resultCode, data);
+            // qrcode intent
+            IntentResult scanResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+            if (scanResult != null) {
+
+                final LinearLayout layout = rootLayout;
+                final LinearLayout.LayoutParams narrowButtonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 110);
+                narrowButtonMargins.setMargins(0, 12, 0, 12);
+
+                final Button qrcodeButton = (Button) layout.findViewById(qrcodeButtonId);
+
+                if (mLastLocation != null) {
+                    // check if scan results match expected answer
+                    String expected = question.get_options().get(0).getKey();
+                    String result = scanResult.getContents();
+
+                    if(expected.equals(result)) {
+                        QuestionAnswer qa = new QuestionAnswer(
+                                user.getKey(),
+                                mLastLocation.getLatitude(),
+                                mLastLocation.getLongitude(),
+                                "...",
+                                question.getQuestion(),
+                                expected,
+                                System.currentTimeMillis()/1000,
+                                question.getKey()
+                        );
+
+                        QuestionAnswer.addNodeToFirebase(question.getKey(), question.get_options().get(0).getKey(), qa);
+                        if(isQuest) {
+                            Quest.completeQuestQuestion(quest.getShortname(), user.getKey(), question.getKey());
+                        }
+                        isComplete = true;
+                        isFirstComplete = true;
+                        mListener.completeQuestion(question, user, isComplete, isQuest, quest);
+                        Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
+
+                        qrcodeImage.setImageResource(R.drawable.ic_opscodegreen);
+                        qrcodeButton.setEnabled(false);
+                        ((LinearLayout)layout.findViewById(R.id.questionControls)).removeView(qrcodeButton);
+
+                        Button rbutton = new Button(rootActivity);
+                        rbutton.setText("Show Community Answers");
+                        rbutton.setBackgroundColor(Color.parseColor("#2196f3"));
+                        rbutton.setTextColor(Color.WHITE);
+                        rbutton.setTextSize(12f);
+                        rbutton.setElevation(2);
+                        rbutton.setPadding(0, 2, 0, 2);
+                        rbutton.setLayoutParams(narrowButtonMargins);
+                        rbutton.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent myIntent = new Intent(rootActivity, QuestionDetailActivity.class);
+                                myIntent.putExtra("username", user.getKey());
+                                myIntent.putExtra("question", question.getKey());
+                                startActivity(myIntent);
+                            }
+                        });
+
+                        layout.addView(rbutton);
+
+                    } else {
+                        Toast.makeText(rootActivity, "Try again. That's not the right OpsCode!", Toast.LENGTH_SHORT).show();
+                    }
+
+                } else {
+                    Toast.makeText(rootActivity, "Try again. Waiting for location...", Toast.LENGTH_SHORT).show();
+                }
+
+            } else {
+                Toast.makeText(rootActivity, "That didn't look like a QR code or photo.", Toast.LENGTH_SHORT).show();
+                super.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
 

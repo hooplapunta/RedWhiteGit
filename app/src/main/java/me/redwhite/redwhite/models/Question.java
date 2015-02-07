@@ -316,4 +316,14 @@ public class Question implements FirebaseNode{
     public static void findQuestionsForUser(ArrayList<String> communities_joined, ValueEventListener listener) {
         Firebase cRef = new Firebase(FIREBASEPATH + "community/");
     }
+
+    public int countLastHour() {
+        int count = 0;
+
+        for(QuestionOption qo : _options) {
+            count += qo.countLastHour();
+        }
+
+        return count;
+    }
 }

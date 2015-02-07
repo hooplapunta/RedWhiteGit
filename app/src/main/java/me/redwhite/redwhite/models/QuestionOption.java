@@ -33,4 +33,16 @@ public class QuestionOption {
         this.key = key;
         this._answers = _answers;
     }
+
+    public int countLastHour() {
+        int count = 0;
+
+        for(QuestionAnswer qa : _answers) {
+            if (((System.currentTimeMillis()/1000) - qa.getResponse_datetime()) < 3600) {
+                count++;
+            }
+        }
+
+        return count;
+    }
 }

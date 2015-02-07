@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/toastContainer"
+    android:layout_width="match_parent"
+    android:layout_height="104dp"
+    android:layout_marginLeft="8dp"
+    android:layout_marginRight="8dp"
+    android:background="#FFFFFF"
+    android:elevation="12dp"
+    >
+
+    <ImageView android:id="@+id/toastImage"
+        android:src="@drawable/ic_crowdopsquestion"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="12dp"
+        android:layout_marginLeft="14dp">
+
+        </ImageView>
+
+    <TextView android:id="@+id/toastTitle"
+        android:text="CrowdOps Toast Title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/toastImage"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="12dp"
+        style="@android:style/TextAppearance.Material.Headline">
+
+    </TextView>
+
+    <TextView android:id="@+id/toastSubTitle"
+        android:text="Here is the toast subtitle. Add some text for elaboration."
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/toastImage"
+        android:layout_below="@id/toastTitle"
+        android:layout_marginLeft="12dp"
+        android:layout_marginTop="6dp"
+        style="@android:style/TextAppearance.Material.Medium">
+
+    </TextView>
+
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/progressBar"
+        android:layout_below="@+id/toastImage"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="319dp" />
+
+</RelativeLayout>
