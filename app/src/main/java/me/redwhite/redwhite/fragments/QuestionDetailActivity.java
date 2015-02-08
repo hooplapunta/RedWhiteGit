@@ -142,6 +142,11 @@ public class QuestionDetailActivity extends Activity {
                     public void onClick(View v) {
                         doBuffer();
 
+                        if(circle != null) {
+                            circle.remove();
+                        }else{
+                            
+                        }
                 }
                 });
 
