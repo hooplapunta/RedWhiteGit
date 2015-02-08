@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -14,8 +15,10 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -32,6 +35,7 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.TileOverlay;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.maps.android.heatmaps.Gradient;
 import com.google.maps.android.heatmaps.HeatmapTileProvider;
@@ -42,6 +46,7 @@ import org.achartengine.model.CategorySeries;
 import org.achartengine.renderer.DefaultRenderer;
 import org.achartengine.renderer.SimpleSeriesRenderer;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +58,7 @@ import me.redwhite.redwhite.models.QuestionAnswer;
 
 //import chart
 import org.achartengine.model.SeriesSelection;
+
 public class QuestionDetailActivity extends Activity {
     TextView welcome;
     TextView questionTxt;
@@ -64,10 +70,13 @@ public class QuestionDetailActivity extends Activity {
     int option2count;
     int totalOptionCount;
 
+    String mapMode;
 
     private MapView mMapView;
     private GoogleMap gMap;
-
+    private TileOverlay mSeverityOverlay;
+    private TileOverlay mRedOverlay;
+    private TileOverlay mWhiteOverlay;
 
     FrameLayout frameLayout;
     LinearLayout layout;
@@ -77,34 +86,40 @@ public class QuestionDetailActivity extends Activity {
     Question question;
 
     Button buttonBuffer;
+
+    CheckBox checkBoxCompare;
+
+
+    TextView tvMode;
     private GraphicalView chartOption;
+
 
     List<LatLng> redList = new ArrayList<LatLng>();
     List<LatLng> whitelist = new ArrayList<LatLng>();
+    List<LatLng> totalList = new ArrayList<LatLng>();
+
     @Override
     protected void onCreate(final Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question_detail);
 
+        tvOption1 = (TextView) findViewById(R.id.tvOption1);
+        tvOption2 = (TextView) findViewById(R.id.tvOption2);
 
+        buttonBuffer = (Button) findViewById(R.id.btn_Buffer);
+
+        checkBoxCompare = (CheckBox) findViewById(R.id.cb_Comparison);
+        frameLayout = (FrameLayout) findViewById(R.id.frameLayoutSingleQuestion);
+        tvMode =(TextView)findViewById(R.id.tv_Mode);
 
         Question.findNodeByKey("1", new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-
-
-                question = Question.convertFromMap("1",(Map<String, Object>)dataSnapshot.getValue());
-
-
-                tvOption1 = (TextView)findViewById(R.id.tvOption1);
-                tvOption2 = (TextView)findViewById(R.id.tvOption2);
-                buttonBuffer = (Button)findViewById(R.id.btn_Buffer);
-
-                frameLayout = (FrameLayout) findViewById(R.id.frameLayoutSingleQuestion);
+                question = Question.convertFromMap("1", (Map<String, Object>) dataSnapshot.getValue());
 
                 layout = (LinearLayout) findViewById(R.id.linearLayoutCard);
-                LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
+                LinearLayout.LayoutParams buttonMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 buttonMargins.setMargins(0, 16, 0, 16);
                 questionTxt = (TextView) findViewById(R.id.tvQuestionText);
 
@@ -113,64 +128,84 @@ public class QuestionDetailActivity extends Activity {
                 String questionFromMain = extras.getString("question");
 
                 ActionBar actionBar = getActionBar();
-                actionBar.setTitle(usernameFromMain+"'s Activity");
+                actionBar.setTitle(usernameFromMain + "'s Activity");
 
                 questionTxt.setText(questionFromMain);
 
+                //Buffer Button
                 buttonBuffer.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         doBuffer();
-
-
-                        Log.println(Log.INFO,"","pass button");
-
                     }
                 });
 
-                TextView tv = new TextView(QuestionDetailActivity.this);
-                tv.setText(usernameFromMain+ "'s answer:");
-                layout.addView(tv);
-
-                final Button option1 = new Button(QuestionDetailActivity.this);
-                option1.setText("Yes, questions are awesome!");
-                option1.setBackgroundColor(Color.parseColor("#F44336"));
-                option1.setTextColor(Color.WHITE);
-                option1.setElevation(2);
-                option1.setLayoutParams(buttonMargins);
-
-                layout.addView(option1);
-
-                LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT);
-                tvMargins.setMargins(0, 24, 0, 16);
-
-                TextView yourtv = new TextView(QuestionDetailActivity.this);
-                yourtv.setText("Add your answer:");
-                yourtv.setLayoutParams(tvMargins);
-
-
-                layout.addView(yourtv);
-
-                Button option3 = new Button(QuestionDetailActivity.this);
-                option3.setText("Yes, questions are awesome!");
-                option3.setBackgroundColor(Color.parseColor("#F44336"));
-                option3.setTextColor(Color.WHITE);
-                option3.setElevation(2);
-                option3.setLayoutParams(buttonMargins);
-
-                layout.addView(option3);
-
-                final Button option2 = new Button(QuestionDetailActivity.this);
-                option2.setText("No, I think we can do better than just questions.");
-                option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
-                option2.setTextColor(Color.BLACK);
-                option2.setElevation(2);
-                option2.setLayoutParams(buttonMargins);
-                layout.addView(option2);
+                checkBoxCompare.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(checkBoxCompare.isChecked()) {
+                            tvMode.setText("Options Comparison Mode");
+                            mSeverityOverlay.setVisible(false);
+                            mRedOverlay.setVisible(true);
+                            mWhiteOverlay.setVisible(true);
 
 
 
+                        } else {
+                            tvMode.setText("Severity Distribution Mode");
+                            mSeverityOverlay.setVisible(true);
+                            mRedOverlay.setVisible(false);
+                            mWhiteOverlay.setVisible(false);
+
+
+                        }
+                    }
+                });
+
+                //Hard coded details
+                {
+                    TextView tv = new TextView(QuestionDetailActivity.this);
+                    tv.setText(usernameFromMain + "'s answer:");
+                    layout.addView(tv);
+
+                    final Button option1 = new Button(QuestionDetailActivity.this);
+                    option1.setText("Yes, questions are awesome!");
+                    option1.setBackgroundColor(Color.parseColor("#F44336"));
+                    option1.setTextColor(Color.WHITE);
+                    option1.setElevation(2);
+                    option1.setLayoutParams(buttonMargins);
+
+                    layout.addView(option1);
+
+                    LinearLayout.LayoutParams tvMargins = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    tvMargins.setMargins(0, 24, 0, 16);
+
+                    TextView yourtv = new TextView(QuestionDetailActivity.this);
+                    yourtv.setText("Add your answer:");
+                    yourtv.setLayoutParams(tvMargins);
+
+
+                    layout.addView(yourtv);
+
+                    Button option3 = new Button(QuestionDetailActivity.this);
+                    option3.setText("Yes, questions are awesome!");
+                    option3.setBackgroundColor(Color.parseColor("#F44336"));
+                    option3.setTextColor(Color.WHITE);
+                    option3.setElevation(2);
+                    option3.setLayoutParams(buttonMargins);
+
+                    layout.addView(option3);
+
+                    final Button option2 = new Button(QuestionDetailActivity.this);
+                    option2.setText("No, I think we can do better than just questions.");
+                    option2.setBackgroundColor(Color.parseColor("#B0BEC5"));
+                    option2.setTextColor(Color.BLACK);
+                    option2.setElevation(2);
+                    option2.setLayoutParams(buttonMargins);
+                    layout.addView(option2);
+                }
+
+                //Setting up Map
                 //TODO: Junhong this is where you get the map ready and put in the heatmap
                 mMapView = (MapView) findViewById(R.id.mapView);
                 mMapView.onCreate(savedInstanceState);
@@ -182,7 +217,6 @@ public class QuestionDetailActivity extends Activity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
 
                 // set up the map data once the view is ready
                 mMapView.getMapAsync(new OnMapReadyCallback() {
@@ -199,14 +233,11 @@ public class QuestionDetailActivity extends Activity {
                                 .newCameraPosition(cameraPosition));
 
 
-
-
                         googleMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
                             @Override
                             public void onInfoWindowClick(Marker marker) {
 
                                 //TODO: if you want something to happen when a marker is tapped, write code here
-
                             }
                         });
 
@@ -231,87 +262,36 @@ public class QuestionDetailActivity extends Activity {
                                 .snippet("asked by SMRT")
                                 .position(new LatLng(1.381, 103.844)));
 
-
-
-
+                        //Storing LAT LONG INTO ARRAYS (RED + TOTAL)
                         ArrayList<QuestionAnswer> qaList = question.get_options().get(0).get_answers();
-                       option1count = qaList.size();
+                        option1count = qaList.size();
 
                         //get an array list of responses that used (0) question option
-                        for (QuestionAnswer qa : qaList)
-                        {
+                        for (QuestionAnswer qa : qaList) {
                             final double lat = qa.getLat();
                             final double lng = qa.getLng();
 
-                            redList.add(new LatLng(lat,lng));
+                            redList.add(new LatLng(lat, lng));
+                            totalList.add(new LatLng(lat, lng));
                         }
 
-                        //TODO: Loop through question.getQuestionOptions().get(1).getQuestionAnswers() arraylist
-//                        redList.add(new LatLng(1.381, 103.844));
-//                        redList.add(new LatLng(1.379, 103.841));
-//                        redList.add(new LatLng(1.382, 103.845));
-//                        redList.add(new LatLng(1.384, 103.840));
 
-                        // Create the gradient.
-                        int[] colors = {
-                                Color.parseColor("#ffcdd2"),
-                                Color.parseColor("#f44336")   // red
-                        };
-                        float[] startPoints = {
-                                0.2f, 1f
-                        };
-                        Gradient redgradient = new Gradient(colors, startPoints);
-
-                        // Create a heat map tile provider, passing it the latlngs of the police stations.
-                        HeatmapTileProvider mProvider = new HeatmapTileProvider.Builder()
-                                .data(redList)
-                                .gradient(redgradient)
-                                .build();
-                        // Add a tile overlay to the map, using the heat map tile provider.
-                        mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(mProvider));
-
-
-
-
-
-
-                        //TODO: Loop through question.getQuestionOptions().get(2).getQuestionAnswers() arraylist
-
-
+                        //Storing LAT LONG INTO ARRAYS (WHITE + TOTAL)
                         ArrayList<QuestionAnswer> qaList2 = question.get_options().get(1).get_answers();
                         //get an array list of responses that used (0) question option
                         option2count = qaList2.size();
-                        for (QuestionAnswer qa2 : qaList2)
-                        {
+                        for (QuestionAnswer qa2 : qaList2) {
                             double lat = qa2.getLat();
                             double lng = qa2.getLng();
 
                             whitelist.add(new LatLng(lat, lng));
+                            totalList.add(new LatLng(lat, lng));
                         }
 
-
-
-                        // Create the gradient.
-                        int[] wcolors = {
-                                Color.parseColor("#ddbefb"),
-                                Color.parseColor("#2196f3")   // blue
-                        };
-                        float[] wstartPoints = {
-                                0.2f, 1f
-                        };
-                        Gradient wgradient = new Gradient(wcolors, wstartPoints);
-
-                        // Create a heat map tile provider, passing it the latlngs of the police stations.
-                        HeatmapTileProvider whiteProvider = new HeatmapTileProvider.Builder()
-                                .data(whitelist)
-                                .gradient(wgradient)
-                                .build();
-                        // Add a tile overlay to the map, using the heat map tile provider.
-                        mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
-
-
-
-                        FrameLayout container = (FrameLayout) findViewById(R.id.analysisContainer);
+                        //TODO: Data is ready, create the heatmaps
+                        createSeverityLayer();
+                        createRedComparison();
+                        createWhiteComparison();
 
                         tvOption1.setText(Integer.toString(option1count));
                         tvOption2.setText(Integer.toString(option2count));
@@ -319,22 +299,83 @@ public class QuestionDetailActivity extends Activity {
                     }
                 });
                 //totalOptionCount = option1count + option2count;
-              //  Log.println(Log.INFO,"FUCK","hellocb"+String.valueOf(totalOptionCount));
-
+                //  Log.println(Log.INFO,"FUCK","hellocb"+String.valueOf(totalOptionCount));
 
             }
-
 
             @Override
             public void onCancelled(FirebaseError firebaseError) {
 
             }
         });
-
-
     }
 
-    private void doBuffer(){
+    public void createSeverityLayer() {
+        int[] tcolors = {
+                Color.rgb(102, 225, 0), // green
+                Color.rgb(255, 0, 0)     // red
+        };
+        float[] tstartPoints = {
+                0.2f, 1f
+        };
+        int radius = 10;
+        Gradient totalGradient = new Gradient(tcolors, tstartPoints);
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        HeatmapTileProvider totalProvider = new HeatmapTileProvider.Builder()
+                .radius(10)
+                .data(totalList)
+                .gradient(totalGradient)
+                .build();
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mSeverityOverlay = mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(totalProvider));
+    }
+
+    public void createRedComparison() {
+        int[] rcolors = {
+                Color.parseColor("#ffcdd2"),
+                Color.parseColor("#f44336")   // red
+        };
+        float[] rstartPoints = {
+                0.2f, 1f
+        };
+        Gradient redgradient = new Gradient(rcolors, rstartPoints);
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        HeatmapTileProvider redProvider = new HeatmapTileProvider.Builder()
+                .data(redList)
+                .gradient(redgradient)
+                .build();
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mRedOverlay = mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(redProvider));
+        mRedOverlay.setVisible(false);
+    }
+
+    public void createWhiteComparison() {
+        // Setting up Heat Map ( WHITE )
+        // Create the gradient.
+        int[] wcolors = {
+                Color.parseColor("#ddbefb"),
+                Color.parseColor("#A62196f3")   // blue
+        };
+        float[] wstartPoints = {
+                0.2f, 1f
+        };
+        Gradient wgradient = new Gradient(wcolors, wstartPoints);
+
+        // Create a heat map tile provider, passing it the latlngs of the police stations.
+        HeatmapTileProvider whiteProvider = new HeatmapTileProvider.Builder()
+                .data(whitelist)
+                .gradient(wgradient)
+                .build();
+        // Add a tile overlay to the map, using the heat map tile provider.
+        mWhiteOverlay = mMapView.getMap().addTileOverlay(new TileOverlayOptions().tileProvider(whiteProvider));
+        mWhiteOverlay.setVisible(false);
+    }
+
+
+
+    private void doBuffer() {
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             public void onMapClick(LatLng point) {
 
@@ -354,36 +395,36 @@ public class QuestionDetailActivity extends Activity {
 
     }
 
-    private void showBuffer(LatLng point){
+    private void showBuffer(LatLng point) {
         Log.println(Log.INFO, "", "managed to run show buffer");
-        option1count =0;
-        option2count =0;
+        option1count = 0;
+        option2count = 0;
         double x1 = point.longitude;
         double y1 = point.latitude;
         double x2, y2;
 
 
-        for(int count = 0; count < redList.size(); count++){
+        for (int count = 0; count < redList.size(); count++) {
             double distance = 0;
             x2 = redList.get(count).latitude;
             y2 = redList.get(count).longitude;
-            distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
-            Log.println(Log.INFO,"","hellomother"+String.valueOf(distance));
+            distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+            Log.println(Log.INFO, "", "hellomother" + String.valueOf(distance));
             //distance = distance * 100;
-            if(distance < 145.029){
-                option1count ++;
-                Log.println(Log.INFO,"","helloFuckerR"+Integer.toString(option1count));
+            if (distance < 145.029) {
+                option1count++;
+                Log.println(Log.INFO, "", "helloFuckerR" + Integer.toString(option1count));
             }
         }
-        for(int count = 0; count < whitelist.size(); count++){
+        for (int count = 0; count < whitelist.size(); count++) {
             double distance = 0;
             x2 = whitelist.get(count).latitude;
             y2 = whitelist.get(count).longitude;
-            distance = Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+            distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
             //distance = distance * 100;
-            if(distance < 145.029){
-                option2count ++;
-                Log.println(Log.INFO,"","helloFuckerW"+ Integer.toString(option2count));
+            if (distance < 145.029) {
+                option2count++;
+                Log.println(Log.INFO, "", "helloFuckerW" + Integer.toString(option2count));
             }
         }
         tvOption1.setText(Integer.toString(option1count));
@@ -391,13 +432,15 @@ public class QuestionDetailActivity extends Activity {
         setUpOptionChart();
     }
 
-    private void setUpOptionChart(){
+    private void setUpOptionChart() {
         double percentage = 0;
         int totalOptions = 0;
         String formatOptionStr;
 
+
+
         int[] colors = {Color.rgb(250, 88, 130), Color.rgb(46, 154, 254)};
-       // totalOptions= totalOptionCount;
+        // totalOptions= totalOptionCount;
         CategorySeries distributionSeries = new CategorySeries(" Options ");
 
         ArrayList<Integer> percentArray = new ArrayList<Integer>();
@@ -405,17 +448,19 @@ public class QuestionDetailActivity extends Activity {
 
         percentArray.add(option2count);
         totalOptions = option1count + option2count;
-        for(int i =0; i < percentArray.size();i++){
+        for (int i = 0; i < percentArray.size(); i++) {
 
-            Log.println(Log.INFO,"PERCENTAGE TOTAL",String.valueOf(percentArray.get(i)));
-            Log.println(Log.INFO,"PERCENTAGE TOTAL",String.valueOf(totalOptions));
+            Log.println(Log.INFO, "PERCENTAGE TOTAL", String.valueOf(percentArray.get(i)));
+            Log.println(Log.INFO, "PERCENTAGE TOTAL", String.valueOf(totalOptions));
             percentage = Math.round(((double) percentArray.get(i) / (double) totalOptions) * (double) 100);
+            int percentageInt = (int)percentage;
+            Log.println(Log.INFO, "PERCENTAGE", String.valueOf(percentage));
+            //distributionSeries.add("" + "" + percentageInt + "%", totalOptions);
+            distributionSeries
+                    .add("" + " : " + percentageInt + " %", percentArray.get(i));
 
-            Log.println(Log.INFO,"PERCENTAGE",String.valueOf(percentage));
-            distributionSeries.add("" + "" +percentage+"%",totalOptions);
 
 
-            Log.println(Log.INFO,"PERCENTAGE",String.valueOf(percentage));
         }
 
         DefaultRenderer defaultRenderer = new DefaultRenderer();
@@ -435,7 +480,7 @@ public class QuestionDetailActivity extends Activity {
         defaultRenderer.setZoomButtonsVisible(false);
         defaultRenderer.setShowLegend(true);
         defaultRenderer.setInScroll(true);
-        defaultRenderer.setMargins(new int[] { 50, 25, 20, 20 });
+        defaultRenderer.setMargins(new int[]{50, 25, 20, 20});
 
         // Get the component from XML file
         RelativeLayout chartContainer = (RelativeLayout) findViewById(R.id.chart);
@@ -476,15 +521,7 @@ public class QuestionDetailActivity extends Activity {
         */
         // Adding the Pie Chart to the LinearLayout
         chartContainer.addView(chartOption);
-
     }
-
-
-
-
-
-
-
 
 
     @Override
@@ -506,18 +543,16 @@ public class QuestionDetailActivity extends Activity {
             return true;
         }
 
-        if (id == R.id.menuShowProfile)
-        {
+        if (id == R.id.menuShowProfile) {
             Intent myIntent = new Intent(this, SingleProfileActivity.class);
             //TODO: Hookup to the right user id
             myIntent.putExtra("username", "BAA");
             startActivity(myIntent);
         }
 
-        if (id == R.id.action_showAnswers)
-        {
+        if (id == R.id.action_showAnswers) {
             // swap the display over
-            if(listViewActive){
+            if (listViewActive) {
                 Animation animation = new AlphaAnimation(1.0f, 0.0f);
                 animation.setFillAfter(true);
                 animation.setDuration(350);
