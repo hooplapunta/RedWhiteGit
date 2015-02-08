@@ -31,6 +31,7 @@ import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -71,6 +72,9 @@ public class QuestionDetailActivity extends Activity {
     int totalOptionCount;
 
     String mapMode;
+
+    private CircleOptions circleOptions;
+    private Circle circle;
 
     private MapView mMapView;
     private GoogleMap gMap;
@@ -137,7 +141,8 @@ public class QuestionDetailActivity extends Activity {
                     @Override
                     public void onClick(View v) {
                         doBuffer();
-                    }
+
+                }
                 });
 
                 checkBoxCompare.setOnClickListener(new View.OnClickListener() {
@@ -379,13 +384,13 @@ public class QuestionDetailActivity extends Activity {
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             public void onMapClick(LatLng point) {
 
-                CircleOptions circleOptions = new CircleOptions()
+                 circleOptions = new CircleOptions()
                         .center(point)
                         .radius(500)
                         .fillColor(Color.argb(95, 178, 30, 37))
                         .strokeColor(Color.TRANSPARENT);
 
-                gMap.addCircle(circleOptions);
+               circle = gMap.addCircle(circleOptions);
                 Log.println(Log.INFO, "", "failure");
                 showBuffer(point);
                 Log.println(Log.INFO, "", "pass");
@@ -411,7 +416,7 @@ public class QuestionDetailActivity extends Activity {
             distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
             Log.println(Log.INFO, "", "hellomother" + String.valueOf(distance));
             //distance = distance * 100;
-            if (distance < 145.029) {
+            if (distance < 145.027) {
                 option1count++;
                 Log.println(Log.INFO, "", "helloFuckerR" + Integer.toString(option1count));
             }
@@ -422,7 +427,7 @@ public class QuestionDetailActivity extends Activity {
             y2 = whitelist.get(count).longitude;
             distance = Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
             //distance = distance * 100;
-            if (distance < 145.029) {
+            if (distance < 145.027) {
                 option2count++;
                 Log.println(Log.INFO, "", "helloFuckerW" + Integer.toString(option2count));
             }
