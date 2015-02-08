@@ -13,6 +13,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.text.Layout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -92,8 +93,6 @@ public class QuestDetailFragment extends Fragment
     private static final String ARG_PARAM2 = "param2";
 
     // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     private OnFragmentInteractionListener mListener;
 
@@ -108,10 +107,16 @@ public class QuestDetailFragment extends Fragment
 
     ArrayList<Marker> userMarkerList = new ArrayList<Marker>();
 
+    public static ArrayList<String> instructions = new ArrayList<String>();
+    public static ArrayList<Integer> distances = new ArrayList<Integer>();
+    public static ArrayList<Integer> durations = new ArrayList<Integer>();
+
     private MapView mMapView;
     private GoogleMap gMap;
-    private Polyline currentLine;
     private ClusterManager<QuestionMarker> questionCluster;
+
+    private static QuestInfoFragment questInfoFragment;
+    private static DirectionsInfoFragment directionsInfoFragment;
 
     private boolean listViewActive;
 
@@ -122,6 +127,7 @@ public class QuestDetailFragment extends Fragment
             -73.998585);
     private static final LatLng BROOKLYN_BRIDGE = new LatLng(40.7057, -73.9964);
     private static final LatLng WALL_STREET = new LatLng(40.7064, -74.0094);
+
 
     /**
      * Use this factory method to create a new instance of
@@ -149,8 +155,7 @@ public class QuestDetailFragment extends Fragment
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+            //TODO: retieve args
         }
 
         // Allow access to the ActionBar
@@ -254,10 +259,10 @@ public class QuestDetailFragment extends Fragment
 
         //TODO: need to pickup the quest from an earlier screen
         final Quest quest = new Quest();
-        String[] questions = {"1","2","3","4","5","somethingsomething", "anotherquestion"};
+        String[] questions = {"bishan1","bishan2","bishan3","bishan4","bishan5","bishan6"};
         ArrayList<String> questionlist = new ArrayList<>(Arrays.asList(questions));
         quest.setQuestions(questionlist);
-        quest.setShortname("orchardps2015");
+        quest.setShortname("bishanparkconnector");
 
         QuestUser qu = new QuestUser("BAA", false, 1423295887, 1423295887, 1.379978, 103.848772, true, new HashMap<String, Boolean>());
         qu.getComplete_questions().put("somethingsomething", true);
@@ -309,7 +314,7 @@ public class QuestDetailFragment extends Fragment
                                     }
 
                                     questionList.add(q);
-                                    titleList.add("question");
+                                    titleList.add(q.getType());
 
                                     boolean userfound = false;
                                     for(QuestUser qu : quest.getUsers()) {
@@ -331,7 +336,7 @@ public class QuestDetailFragment extends Fragment
                                     //bughack to prevent crashing when reloading for this second time
                                     if (questionList.size() == 1) {
                                         questionList.add(q);
-                                        titleList.add("question");
+                                        titleList.add(q.getType());
                                         completeList.add(false);
                                     }
 
@@ -451,14 +456,27 @@ public class QuestDetailFragment extends Fragment
 
     private String getMapsApiDirectionsUrl() {
 
-        String origin = "origin=" + questionList.get(0).get_location().getLat() +"," + questionList.get(0).get_location().getLng();
-        String destination = "destination=" +questionList.get(questionList.size()-1).get_location().getLat() +"," +questionList.get(questionList.size()-1).get_location().getLng();
+        boolean isFirst = true;
+
+        String origin = "";
+        String destination = "";
 
         String waypoints = "waypoints=optimize:false|";
-        for(int i=1; i < questionList.size()-1; i++) {
+        for(int i=0; i < questionList.size(); i++) {
             if (!completeList.get(i)) {
-                waypoints += questionList.get(i).get_location().getLat() +"," + questionList.get(i).get_location().getLng();
-                waypoints += "|";
+
+                // check if this is the first point
+                if(isFirst) {
+                    origin = "origin=" + questionList.get(i).get_location().getLat() +"," + questionList.get(i).get_location().getLng();
+                    isFirst = false;
+                // check if the next point exists
+                } else if((i+1) == completeList.size()) {
+                    destination = "destination=" +questionList.get(i).get_location().getLat() +"," +questionList.get(i).get_location().getLng();
+                } else {
+                    waypoints += questionList.get(i).get_location().getLat() +"," + questionList.get(i).get_location().getLng();
+                    waypoints += "|";
+                }
+
             } else {
                 //waypoint was ignored as question is complete
             }
@@ -467,10 +485,9 @@ public class QuestDetailFragment extends Fragment
         waypoints = waypoints.substring(0, waypoints.length()-1);
 
         String sensor = "sensor=false";
-        String params = waypoints + "&" + sensor;
         String output = "json";
         String url = "https://maps.googleapis.com/maps/api/directions/"
-                + output + "?" +origin +"&" +destination +"&" + params +"&key=AIzaSyCIqH10fDisGK7uC7TBWec6kqLL_e8VdeI";
+                + output + "?" +"mode=walking" +"&" +origin +"&" +destination +"&" +waypoints +"&" + sensor +"&key=AIzaSyCIqH10fDisGK7uC7TBWec6kqLL_e8VdeI";
         return url;
     }
 
@@ -500,16 +517,17 @@ public class QuestDetailFragment extends Fragment
     }
 
     public void pagerUpdate(int position) {
+        if (position >= 3) {
+            if (questionList != null) {
+                Question q = questionList.get(position-3);
 
-        if (questionList != null) {
-            Question q = questionList.get(position);
+                if (q != null) {
+                    CameraPosition cameraPosition = new CameraPosition.Builder()
+                            .target(new LatLng(q.get_location().getLat() + 0.015, q.get_location().getLng())).zoom(14).build();
 
-            if (q != null) {
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(new LatLng(q.get_location().getLat() + 0.015, q.get_location().getLng())).zoom(14).build();
-
-                gMap.animateCamera(CameraUpdateFactory
-                        .newCameraPosition(cameraPosition));
+                    gMap.animateCamera(CameraUpdateFactory
+                            .newCameraPosition(cameraPosition));
+                }
             }
         }
     }
@@ -526,6 +544,7 @@ public class QuestDetailFragment extends Fragment
             }
         }
 
+        questInfoFragment.updateProgress(completeList);
         redrawMap();
     }
 
@@ -543,6 +562,12 @@ public class QuestDetailFragment extends Fragment
                 jObject = new JSONObject(jsonData[0]);
                 PathJSONParser parser = new PathJSONParser();
                 routes = parser.parse(jObject);
+
+                //custom
+                instructions = parser.instructions;
+                distances = parser.distances;
+                durations = parser.durations;
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -593,17 +618,12 @@ public class QuestDetailFragment extends Fragment
                 qm.setmPosition(new LatLng(q.get_location().getLat(), q.get_location().getLng()));
                 questionCluster.addItem(qm);
                 questionCluster.cluster();
-
-//                gMap.addMarker(new MarkerOptions()
-//                        .title(q.getQuestion())
-//                        .snippet("asked by " + q.getCreated_username())
-//                        .icon(BitmapDescriptorFactory.fromResource(markercolor))
-//                        .position(new LatLng(q.get_location().getLat(), q.get_location().getLng())));
             }
 
-
-            currentLine = gMap.addPolyline(polyLineOptions);
+            gMap.addPolyline(polyLineOptions);
             questionCluster.cluster();
+
+            //TODO: Reset the directions card
         }
 
     }
@@ -668,7 +688,13 @@ public class QuestDetailFragment extends Fragment
             this.questions = questions;
             this.completes = completes;
 
-            TITLES = titles.toArray(TITLES);
+            ArrayList<String> templist = new ArrayList<String>();
+            templist.addAll(titles);
+
+            templist.add(0, "Info");
+            templist.add(1, "Online Users");
+            templist.add(2, "Directions");
+            TITLES = templist.toArray(TITLES);
         }
 
         public void setScrollY(int scrollY) {
@@ -682,17 +708,45 @@ public class QuestDetailFragment extends Fragment
 
             // retrieve the question
 
-            Question q = questions.get(position);
-            boolean c = completes.get(position);
+            android.support.v4.app.Fragment f;
+            if (TITLES[position].equals("Info")) {
+                //TODO: update this to use real quest
+                final Quest quest = new Quest();
+                quest.setName("Bishan Park Connector Ride");
+                quest.setStart_datetime(1422835086);
+                quest.setEnd_datetime(1423439886);
+                quest.setDescription("Discover the Bishan-Ang Mo Kio Park Connector on a bike ride and tell us what you think!");
+                String[] questions = {"bishan1","bishan2","bishan3","bishan4","bishan5","bishan6"};
+                ArrayList<String> questionlist = new ArrayList<>(Arrays.asList(questions));
+                quest.setQuestions(questionlist);
+                quest.setShortname("bishanparkconnector");
 
-            //TODO: update this to use real quest
-            final Quest quest = new Quest();
-            String[] questions = {"1","2","3","4","5","somethingsomething"};
-            ArrayList<String> questionlist = new ArrayList<>(Arrays.asList(questions));
-            quest.setQuestions(questionlist);
-            quest.setShortname("orchardps2015");
+                questInfoFragment = QuestInfoFragment.newInstance(quest, this.questions, completes);
+                f = questInfoFragment;
 
-            android.support.v4.app.Fragment f = SingleQuestionFragment.newInstance(q, user, c, true, quest);
+            } else if(TITLES[position].equals("Directions")) {
+
+                directionsInfoFragment = DirectionsInfoFragment.newInstance(instructions, distances, durations);
+                f = directionsInfoFragment;
+
+            } else if(TITLES[position].equals("Online Users")) {
+
+                f = DirectionsInfoFragment.newInstance(instructions, distances, durations);
+
+
+            } else {
+                Question q = questions.get(position-3);
+                boolean c = completes.get(position-3);
+
+                //TODO: update this to use real quest
+                final Quest quest = new Quest();
+                String[] questions = {"bishan1","bishan2","bishan3","bishan4","bishan5","bishan6"};
+                ArrayList<String> questionlist = new ArrayList<>(Arrays.asList(questions));
+                quest.setQuestions(questionlist);
+                quest.setShortname("bishanparkconnector");
+
+                f = SingleQuestionFragment.newInstance(q, user, c, true, quest);
+            }
 
             return f;
             // assign new instance of fragment

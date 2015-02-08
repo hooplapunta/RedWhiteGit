@@ -4,7 +4,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="me.redwhite.redwhite.SingleQuestionActivity$PlaceholderFragment">
+    tools:context="me.redwhite.redwhite.fragments.QuestInfoFragment">
 
     <LinearLayout
         android:orientation="vertical"
@@ -26,54 +26,45 @@
             android:orientation="horizontal"
             android:gravity="center_vertical|left"
             android:layout_gravity="center_vertical|left">
+
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@drawable/ic_launcher"
+                android:src="@drawable/ic_maps_directions"
                 />
 
             <TextView
-                android:id="@+id/tvUsername"
+                android:id="@+id/tvQuestTitle"
                 android:textStyle="bold"
+                android:textSize="18sp"
                 android:layout_marginLeft="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TheUsername asked:"
+                android:text="Directions:"
                 />
 
         </LinearLayout>
 
         <TextView
-            android:id="@+id/tvQuestionText"
+            android:id="@+id/tvQuestDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="This is the question text."
-            android:textSize="24sp"
-            android:layout_marginTop="0dp"
+            android:text="Here's the fastest route between the remaining questions. Watch out, stay safe and good luck!"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             />
 
         <!-- Question controls go here -->
 
-        <TextView
-            android:id="@+id/tvYourAnswerIs"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Awesome! Your answer is:"
-            android:visibility="gone"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"
-            android:gravity="center" />
 
-        <LinearLayout
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:id="@+id/questionControls"
-            >
 
-            </LinearLayout>
+            <ListView
+                android:id="@+id/lvRoute"
+                android:layout_width="fill_parent"
+                android:layout_height="150dp"
+                >
+
+            </ListView>
 
 
     </LinearLayout>

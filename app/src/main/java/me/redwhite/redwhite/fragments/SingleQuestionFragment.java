@@ -210,7 +210,7 @@ public class SingleQuestionFragment extends Fragment
                     qLocation.setTime(System.currentTimeMillis());
 
                     float distance = location.distanceTo(qLocation);
-                    if (distance < 500f) {
+                    if (distance < 250f) {
                         switch(question.getType())
                         {
                             case "twooption":
@@ -250,20 +250,8 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-
-                                                LayoutInflater tinflater = rootActivity.getLayoutInflater();
-                                                View toastlayout = tinflater.inflate(R.layout.toast_crowdops, (ViewGroup)rootActivity.findViewById(R.id.toastContainer));
-                                                TextView text = (TextView) toastlayout.findViewById(R.id.toastTitle);
-                                                text.setText("Question Complete!");
-                                                TextView subtext = (TextView) toastlayout.findViewById(R.id.toastSubTitle);
-                                                subtext.setText("+50 Ops Points, spend it on powerups to get ahead!");
-                                                Toast toast = new Toast(rootActivity);
-                                                toast.setGravity(Gravity.BOTTOM, 0, 0);
-                                                toast.setDuration(Toast.LENGTH_LONG);
-                                                toast.setView(toastlayout);
-                                                toast.show();
-
-                                                //Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
+                                                rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                                                showAnsweredToast();
 
                                                 // disable current button
                                                 // display show answer button
@@ -345,8 +333,8 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
-
+                                                rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                                                showAnsweredToast();
                                                 // disable current button
                                                 // display show answer button
                                                 layout.removeView(option1);
@@ -440,8 +428,8 @@ public class SingleQuestionFragment extends Fragment
                                                     isComplete = true;
                                                     isFirstComplete = true;
                                                     mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                    Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
-
+                                                    rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                                                    showAnsweredToast();
                                                     // disable current button
                                                     // display show answer button
                                                     scroll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -565,7 +553,8 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
+                                                rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                                                showAnsweredToast();
                                                 // disable current button
                                                 // display show answer button
 
@@ -641,7 +630,8 @@ public class SingleQuestionFragment extends Fragment
                                                 isComplete = true;
                                                 isFirstComplete = true;
                                                 mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                                                Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
+                                                rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                                                showAnsweredToast();
                                                 // disable current button
                                                 // display show answer button
                                                 text.setEnabled(false);
@@ -760,7 +750,7 @@ public class SingleQuestionFragment extends Fragment
                     } else {
                         // not close enough!
                         TextView tv1 = new TextView(rootActivity);
-                        tv1.setText("You need to be within 500m to answer this question!");
+                        tv1.setText("Oops! You need to be " +(((int)(distance-250))/10)*10 +"m closer to answer this question.");
                         tv1.setTextSize(16);
                         tv1.setTypeface(tv1.getTypeface(), Typeface.BOLD);
                         tv1.setLayoutParams(buttonMargins);
@@ -806,6 +796,20 @@ public class SingleQuestionFragment extends Fragment
             TextView tvQuestionText = (TextView) rootLayout.findViewById(R.id.tvQuestionText);
             tvQuestionText.setText(question.getQuestion());
         }
+    }
+
+    private void showAnsweredToast() {
+        LayoutInflater tinflater = rootActivity.getLayoutInflater();
+        View toastlayout = tinflater.inflate(R.layout.toast_crowdops, (ViewGroup)rootActivity.findViewById(R.id.toastContainer));
+        TextView text = (TextView) toastlayout.findViewById(R.id.toastTitle);
+        text.setText("Question Complete!");
+        TextView subtext = (TextView) toastlayout.findViewById(R.id.toastSubTitle);
+        subtext.setText("+50 Ops Points, spend it on powerups to get ahead!");
+        Toast toast = new Toast(rootActivity);
+        toast.setGravity(Gravity.BOTTOM, 0, 0);
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(toastlayout);
+        toast.show();
     }
 
     @Override
@@ -870,12 +874,12 @@ public class SingleQuestionFragment extends Fragment
                         isComplete = true;
                         isFirstComplete = true;
                         mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                        Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
-
+                        rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                        showAnsweredToast();
                         // disable current button
                         // display show answer button
                         camerabutton.setEnabled(false);
-                        layout.removeView(camerabutton);
+                        ((LinearLayout)layout.findViewById(R.id.questionControls)).removeView(camerabutton);
 
                         Button rbutton = new Button(rootActivity);
                         rbutton.setText("Show Community Answers");
@@ -973,8 +977,9 @@ public class SingleQuestionFragment extends Fragment
                         isComplete = true;
                         isFirstComplete = true;
                         mListener.completeQuestion(question, user, isComplete, isQuest, quest);
-                        Toast.makeText(rootActivity, "Awesome! You completed the question.", Toast.LENGTH_SHORT).show();
-
+                        rootLayout.findViewById(R.id.tvYourAnswerIs).setVisibility(View.VISIBLE);
+                        showAnsweredToast();
+                        
                         qrcodeImage.setImageResource(R.drawable.ic_opscodegreen);
                         qrcodeButton.setEnabled(false);
                         ((LinearLayout)layout.findViewById(R.id.questionControls)).removeView(qrcodeButton);

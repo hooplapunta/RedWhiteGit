@@ -12,6 +12,11 @@ import com.google.android.gms.maps.model.LatLng;
 
 public class PathJSONParser {
 
+    //CUSTOM
+    public ArrayList<String> instructions = new ArrayList<String>();
+    public ArrayList<Integer> distances = new ArrayList<Integer>();
+    public ArrayList<Integer> durations = new ArrayList<Integer>();
+
 	public List<List<HashMap<String, String>>> parse(JSONObject jObject) {
 		List<List<HashMap<String, String>>> routes = new ArrayList<List<HashMap<String, String>>>();
 		JSONArray jRoutes = null;
@@ -30,7 +35,18 @@ public class PathJSONParser {
 
 					/** Traversing all steps */
 					for (int k = 0; k < jSteps.length(); k++) {
-						String polyline = "";
+
+						//CUSTOM: Get instructions
+                        instructions.add((String)(((JSONObject) jSteps
+                                .get(k)).get("html_instructions")));
+
+                        distances.add((Integer) ((JSONObject) ((JSONObject) jSteps
+                                .get(k)).get("distance")).get("value"));
+
+                        durations.add((Integer) ((JSONObject) ((JSONObject) jSteps
+                                .get(k)).get("duration")).get("value"));
+
+                        String polyline = "";
 						polyline = (String) ((JSONObject) ((JSONObject) jSteps
 								.get(k)).get("polyline")).get("points");
 						List<LatLng> list = decodePoly(polyline);

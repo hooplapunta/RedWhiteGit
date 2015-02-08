@@ -38,7 +38,7 @@ public class QuestionOption {
         int count = 0;
 
         for(QuestionAnswer qa : _answers) {
-            if (((System.currentTimeMillis()/1000) - qa.getResponse_datetime()) < 3600) {
+            if (((System.currentTimeMillis()/1000) - qa.getResponse_datetime()) <= 3600) {
                 count++;
             }
         }

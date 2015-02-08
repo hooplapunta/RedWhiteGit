@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/toastContainer"
     android:layout_width="match_parent"
-    android:layout_height="104dp"
+    android:layout_height="112dp"
     android:layout_marginLeft="8dp"
     android:layout_marginRight="8dp"
     android:background="#FFFFFF"
@@ -10,7 +10,7 @@
     >
 
     <ImageView android:id="@+id/toastImage"
-        android:src="@drawable/ic_crowdopsquestion"
+        android:src="@drawable/ic_points50"
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:layout_alignParentLeft="true"
@@ -26,7 +26,9 @@
         android:layout_toRightOf="@id/toastImage"
         android:layout_marginLeft="12dp"
         android:layout_marginTop="12dp"
-        style="@android:style/TextAppearance.Material.Headline">
+        style="@android:style/TextAppearance.Material.Headline"
+        android:textSize="20sp"
+        >
 
     </TextView>
 
@@ -38,16 +40,9 @@
         android:layout_below="@id/toastTitle"
         android:layout_marginLeft="12dp"
         android:layout_marginTop="6dp"
+        android:textSize="16sp"
         style="@android:style/TextAppearance.Material.Medium">
 
     </TextView>
-
-    <ProgressBar
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
-        android:layout_below="@+id/toastImage"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="319dp" />
 
 </RelativeLayout>

@@ -4,7 +4,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="me.redwhite.redwhite.SingleQuestionActivity$PlaceholderFragment">
+    tools:context="me.redwhite.redwhite.fragments.QuestInfoFragment">
 
     <LinearLayout
         android:orientation="vertical"
@@ -26,6 +26,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical|left"
             android:layout_gravity="center_vertical|left">
+
             <ImageView
                 android:layout_width="32dp"
                 android:layout_height="32dp"
@@ -33,48 +34,75 @@
                 />
 
             <TextView
-                android:id="@+id/tvUsername"
+                android:id="@+id/tvQuestTitle"
                 android:textStyle="bold"
+                android:textSize="18sp"
                 android:layout_marginLeft="16dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="TheUsername asked:"
+                android:text="Quest Descriptive Name"
                 />
 
         </LinearLayout>
 
         <TextView
-            android:id="@+id/tvQuestionText"
+            android:id="@+id/tvQuestDescription"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="This is the question text."
-            android:textSize="24sp"
-            android:layout_marginTop="0dp"
+            android:text="A really really really long descriptive text. A really really really long descriptive text. A really really really long descriptive text."
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             />
 
         <!-- Question controls go here -->
 
         <TextView
-            android:id="@+id/tvYourAnswerIs"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Awesome! Your answer is:"
-            android:visibility="gone"
-            android:layout_gravity="center_horizontal"
+            android:text="Time left:"
+            android:textStyle="bold"
             android:layout_marginTop="8dp"
-            android:layout_marginBottom="4dp"
-            android:gravity="center" />
+            android:layout_marginBottom="4dp"/>
 
-        <LinearLayout
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:id="@+id/questionControls"
-            >
+            android:id="@+id/pbTimeLeft"
+            android:indeterminate="true"
+            />
 
-            </LinearLayout>
+        <TextView
+            android:id="@+id/tvTimeLeft"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Calculating..."
+            android:textStyle="italic"
+            android:layout_marginBottom="4dp"/>
 
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Quest progress:"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"/>
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/pbProgress"
+            android:indeterminate="true"
+            />
+
+        <TextView
+            android:id="@+id/tvProgress"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Loading Questions..."
+            android:textStyle="italic"
+            android:layout_marginBottom="4dp"/>
 
     </LinearLayout>
 
